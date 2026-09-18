@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Iris SVM API</title>
+</head>
+
+<body>
+
+    <h2>Phân loại hoa Iris bằng SVM</h2>
+
+    <button onclick="predictIris()">Dự đoán</button>
+
+    <pre id="result"></pre>
+
+    <script>
+        async function predictIris() {
+
+            const response = await fetch(
+                "https://tran-duy-phuc.onrender.com/predict",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sepal_length: 5.1,
+                        sepal_width: 3.5,
+                        petal_length: 1.4,
+                        petal_width: 0.2
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            document.getElementById("result").textContent =
+                JSON.stringify(data, null, 2);
+        }
+    </script>
+
+</body>
+</html>
