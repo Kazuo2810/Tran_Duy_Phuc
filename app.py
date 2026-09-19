@@ -48,7 +48,6 @@ class IrisInput(BaseModel):
 
 species = {0: "setosa", 1: "versicolor", 2: "virginica"}
 
-# CỔNG GỐC: HIỂN THỊ GIAO DIỆN WEB
 @app.get("/")
 def home():
     if os.path.exists("index.html"):
@@ -59,15 +58,12 @@ def home():
 def health():
     return {"status": "healthy"}
 
-# MỞ CỬA CHO TRÌNH DUYỆT WEB (GET METHOD)
 @app.get("/predict")
 def predict_from_url(sl: float = 5.1, sw: float = 3.5, pl: float = 1.4, pw: float = 0.2):
-    # 1. Dự đoán
     features = [[sl, sw, pl, pw]]
     pred_id = int(model.predict(features)[0])
     pred_name = species[pred_id]
     
-    # 2. Lưu vào Database
     conn = sqlite3.connect("iris_history.db")
     cursor = conn.cursor()
     cursor.execute(
@@ -84,15 +80,12 @@ def predict_from_url(sl: float = 5.1, sw: float = 3.5, pl: float = 1.4, pw: floa
         "prediction": pred_name
     }
 
-# DÀNH CHO GIAO DIỆN WEB INDEX.HTML (POST METHOD)
 @app.post("/predict")
 def predict(data: IrisInput):
-    # 1. Dự đoán
     features = [[data.sepal_length, data.sepal_width, data.petal_length, data.petal_width]]
     pred_id = int(model.predict(features)[0])
     pred_name = species[pred_id]
     
-    # 2. Lưu vào Database
     conn = sqlite3.connect("iris_history.db")
     cursor = conn.cursor()
     cursor.execute(
@@ -112,9 +105,18 @@ def get_history():
     rows = cursor.fetchall()
     conn.close()
     
-    # Trả về thống kê số lượng từng loài
     stats = {"setosa": 0, "versicolor": 0, "virginica": 0}
     for row in rows:
         if row[0] in stats:
             stats[row[0]] = row[1]
     return stats
+
+# API MỚI: XÓA TOÀN BỘ LỊCH SỬ DỰ ĐOÁN
+@app.get("/clear-history")
+def clear_history():
+    conn = sqlite3.connect("iris_history.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM predictions")
+    conn.commit()
+    conn.close()
+    return {"message": "Đã dọn dẹp sạch sẽ toàn bộ lịch sử trong Database!"}
