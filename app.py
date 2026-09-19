@@ -59,6 +59,32 @@ def home():
 def health():
     return {"status": "healthy"}
 
+# MỞ CỬA CHO TRÌNH DUYỆT WEB (GET METHOD)
+@app.get("/predict")
+def predict_from_url(sl: float = 5.1, sw: float = 3.5, pl: float = 1.4, pw: float = 0.2):
+    # 1. Dự đoán
+    features = [[sl, sw, pl, pw]]
+    pred_id = int(model.predict(features)[0])
+    pred_name = species[pred_id]
+    
+    # 2. Lưu vào Database
+    conn = sqlite3.connect("iris_history.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO predictions (timestamp, sepal_length, sepal_width, petal_length, petal_width, prediction) VALUES (?, ?, ?, ?, ?, ?)",
+        (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), sl, sw, pl, pw, pred_name)
+    )
+    conn.commit()
+    conn.close()
+
+    return {
+        "thong_bao": "Đã nhận dữ liệu trực tiếp từ thanh địa chỉ trình duyệt!",
+        "thong_so_nhan_duoc": {"sepal_length": sl, "sepal_width": sw, "petal_length": pl, "petal_width": pw},
+        "class_id": pred_id, 
+        "prediction": pred_name
+    }
+
+# DÀNH CHO GIAO DIỆN WEB INDEX.HTML (POST METHOD)
 @app.post("/predict")
 def predict(data: IrisInput):
     # 1. Dự đoán
