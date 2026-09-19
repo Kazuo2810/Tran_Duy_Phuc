@@ -50,6 +50,11 @@ species = {0: "setosa", 1: "versicolor", 2: "virginica"}
 def home():
     return {"message": "Iris System is Online"}
 
+# CỔNG KIỂM TRA HEALTH
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
 @app.post("/predict")
 def predict(data: IrisInput):
     # 1. Dự đoán
@@ -69,7 +74,7 @@ def predict(data: IrisInput):
 
     return {"class_id": pred_id, "prediction": pred_name}
 
-# ĐÂY LÀ ĐOẠN API LẤY LỊCH SỬ MÀ BẠN BỊ THIẾU:
+# CỔNG TRẢ VỀ DỮ LIỆU LỊCH SỬ CHO DASHBOARD
 @app.get("/history")
 def get_history():
     conn = sqlite3.connect("iris_history.db")
