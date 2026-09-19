@@ -68,8 +68,26 @@
         .panel-header::before { content: '■'; margin-right: 10px; text-shadow: 0 0 10px var(--primary); }
 
         .control-group { margin-bottom: 20px; }
-        .control-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #94a3b8; }
-        .val-display { color: var(--primary); font-weight: bold; }
+        .control-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; color: #94a3b8; }
+        
+        /* CSS cho ô nhập số trực tiếp */
+        .input-wrapper { display: flex; align-items: center; gap: 6px; }
+        .val-input {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 4px;
+            color: var(--primary);
+            font-weight: bold;
+            font-family: 'Consolas', monospace;
+            width: 55px;
+            padding: 4px;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+        .val-input:focus { border-color: var(--primary); box-shadow: 0 0 8px var(--primary); background: rgba(0, 243, 255, 0.15); }
+        /* Ẩn nút tăng/giảm mặc định của trình duyệt */
+        .val-input::-webkit-outer-spin-button, .val-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #1e293b; border-radius: 2px; }
@@ -94,11 +112,7 @@
         .flower-display { display: none; text-align: center; animation: fadeIn 1s; flex-grow: 1; }
         @keyframes fadeIn { from { opacity: 0; scale: 0.9; } to { opacity: 1; scale: 1; } }
 
-        .flower-image {
-            width: 100%; height: 160px; object-fit: cover; border-radius: 8px;
-            border: 2px solid; margin-top: 15px; transition: 0.5s;
-        }
-
+        .flower-image { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 2px solid; margin-top: 15px; transition: 0.5s; }
         .result-title { font-size: 24px; font-weight: bold; margin-top: 10px; text-shadow: 0 0 10px; }
         
         .flower-desc {
@@ -132,33 +146,45 @@
             <div class="control-group">
                 <div class="control-header">
                     <span>Chiều dài đài hoa (Sepal Length)</span>
-                    <span class="val-display" id="val-sl">5.1 cm</span>
+                    <div class="input-wrapper">
+                        <input type="number" id="val-sl" class="val-input" min="4.0" max="8.0" step="0.1" value="5.1" oninput="syncSlider('sl')">
+                        <span style="color: var(--primary); font-weight: bold;">cm</span>
+                    </div>
                 </div>
-                <input type="range" id="sl" min="4.0" max="8.0" step="0.1" value="5.1" oninput="updateVal('sl')">
+                <input type="range" id="sl" min="4.0" max="8.0" step="0.1" value="5.1" oninput="syncInput('sl')">
             </div>
 
             <div class="control-group">
                 <div class="control-header">
                     <span>Chiều rộng đài hoa (Sepal Width)</span>
-                    <span class="val-display" id="val-sw">3.5 cm</span>
+                    <div class="input-wrapper">
+                        <input type="number" id="val-sw" class="val-input" min="2.0" max="5.0" step="0.1" value="3.5" oninput="syncSlider('sw')">
+                        <span style="color: var(--primary); font-weight: bold;">cm</span>
+                    </div>
                 </div>
-                <input type="range" id="sw" min="2.0" max="5.0" step="0.1" value="3.5" oninput="updateVal('sw')">
+                <input type="range" id="sw" min="2.0" max="5.0" step="0.1" value="3.5" oninput="syncInput('sw')">
             </div>
 
             <div class="control-group">
                 <div class="control-header">
                     <span>Chiều dài cánh hoa (Petal Length)</span>
-                    <span class="val-display" id="val-pl">1.4 cm</span>
+                    <div class="input-wrapper">
+                        <input type="number" id="val-pl" class="val-input" min="1.0" max="7.0" step="0.1" value="1.4" oninput="syncSlider('pl')">
+                        <span style="color: var(--primary); font-weight: bold;">cm</span>
+                    </div>
                 </div>
-                <input type="range" id="pl" min="1.0" max="7.0" step="0.1" value="1.4" oninput="updateVal('pl')">
+                <input type="range" id="pl" min="1.0" max="7.0" step="0.1" value="1.4" oninput="syncInput('pl')">
             </div>
 
             <div class="control-group">
                 <div class="control-header">
                     <span>Chiều rộng cánh hoa (Petal Width)</span>
-                    <span class="val-display" id="val-pw">0.2 cm</span>
+                    <div class="input-wrapper">
+                        <input type="number" id="val-pw" class="val-input" min="0.1" max="3.0" step="0.1" value="0.2" oninput="syncSlider('pw')">
+                        <span style="color: var(--primary); font-weight: bold;">cm</span>
+                    </div>
                 </div>
-                <input type="range" id="pw" min="0.1" max="3.0" step="0.1" value="0.2" oninput="updateVal('pw')">
+                <input type="range" id="pw" min="0.1" max="3.0" step="0.1" value="0.2" oninput="syncInput('pw')">
             </div>
 
             <button id="btnPredict" onclick="duDoan()">[ Khởi chạy Model SVM ]</button>
@@ -196,11 +222,16 @@
     </div>
 
     <script>
-        function updateVal(id) {
-            document.getElementById('val-' + id).innerText = document.getElementById(id).value + " cm";
+        // Hàm đồng bộ: Kéo thanh trượt -> Cập nhật ô nhập số
+        function syncInput(id) {
+            document.getElementById('val-' + id).value = document.getElementById(id).value;
         }
 
-        // Chỉ giữ lại giao diện màu sắc, xóa toàn bộ thông tin cứng (Hardcode)
+        // Hàm đồng bộ: Gõ vào ô nhập số -> Thanh trượt tự động chạy theo
+        function syncSlider(id) {
+            document.getElementById(id).value = document.getElementById('val-' + id).value;
+        }
+
         const styleData = {
             "setosa": { color: "#10b981" },
             "versicolor": { color: "#3b82f6" },
@@ -209,7 +240,7 @@
 
         async function typeTerminal(term, text) {
             term.innerHTML += "> " + text + "<br>";
-            term.scrollTop = term.scrollHeight; // Tự cuộn xuống dòng mới
+            term.scrollTop = term.scrollHeight;
             await new Promise(r => setTimeout(r, 300));
         }
 
@@ -222,17 +253,17 @@
             btn.disabled = true;
             btn.innerText = "[ ĐANG KẾT NỐI API... ]";
             displayArea.style.display = 'none';
-            term.innerHTML = ""; // Xóa terminal cũ
+            term.innerHTML = "";
 
+            // Lấy dữ liệu từ ô input số (đảm bảo độ chính xác nếu gõ tay)
             const data = {
-                sepal_length: parseFloat(document.getElementById('sl').value),
-                sepal_width: parseFloat(document.getElementById('sw').value),
-                petal_length: parseFloat(document.getElementById('pl').value),
-                petal_width: parseFloat(document.getElementById('pw').value)
+                sepal_length: parseFloat(document.getElementById('val-sl').value),
+                sepal_width: parseFloat(document.getElementById('val-sw').value),
+                petal_length: parseFloat(document.getElementById('val-pl').value),
+                petal_width: parseFloat(document.getElementById('val-pw').value)
             };
 
             try {
-                // BƯỚC 1: Gửi lên Model AI của bạn
                 await typeTerminal(term, "Gửi ma trận [1x4] tới tran-duy-phuc.onrender.com/predict...");
                 const response = await fetch("https://tran-duy-phuc.onrender.com/predict", {
                     method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(data)
@@ -245,22 +276,16 @@
 
                 await typeTerminal(term, `<span style="color:${style.color}">KẾT QUẢ AI: Nhận diện Lớp [${result.class_id}] - IRIS ${loaiHoa.toUpperCase()}</span>`);
                 
-                // BƯỚC 2: Tự động quét Wikipedia API để lấy thông tin thực tế
                 await typeTerminal(term, `Khởi tạo quét Wikipedia Tiếng Việt cho từ khóa "Iris_${loaiHoa}"...`);
-
-                // Đổi 'en' thành 'vi' để truy cập Wikipedia Việt Nam
                 const wikiAPI = `https://vi.wikipedia.org/api/rest_v1/page/summary/Iris_${loaiHoa}`;
                 const wikiRes = await fetch(wikiAPI);
                 const wikiData = await wikiRes.json();
                 
                 await typeTerminal(term, "Truy xuất thành công dữ liệu từ Wikipedia. Đang render giao diện...");
 
-                // Lấy ảnh thật từ Wiki (nếu không có thì dùng ảnh xám)
                 const realImage = wikiData.thumbnail ? wikiData.thumbnail.source : "https://via.placeholder.com/400x200/333/fff?text=NO+IMAGE+FOUND";
-                // Lấy đoạn mô tả từ Wiki
                 const realDesc = wikiData.extract ? wikiData.extract : "Không tìm thấy thông tin trên Wikipedia.";
 
-                // Đổ dữ liệu lên màn hình
                 const title = document.getElementById('result-name');
                 title.innerText = "IRIS " + loaiHoa.toUpperCase();
                 title.style.color = style.color;
