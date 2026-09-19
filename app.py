@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import joblib
 import sqlite3
 from datetime import datetime
+import os
 
 # Tải mô hình
 model = joblib.load("svm_model.pkl")
@@ -46,11 +48,13 @@ class IrisInput(BaseModel):
 
 species = {0: "setosa", 1: "versicolor", 2: "virginica"}
 
+# CỔNG GỐC: HIỂN THỊ GIAO DIỆN WEB
 @app.get("/")
 def home():
-    return {"message": "Iris System is Online"}
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return {"message": "Chưa tìm thấy file index.html"}
 
-# CỔNG KIỂM TRA HEALTH
 @app.get("/health")
 def health():
     return {"status": "healthy"}
@@ -74,7 +78,6 @@ def predict(data: IrisInput):
 
     return {"class_id": pred_id, "prediction": pred_name}
 
-# CỔNG TRẢ VỀ DỮ LIỆU LỊCH SỬ CHO DASHBOARD
 @app.get("/history")
 def get_history():
     conn = sqlite3.connect("iris_history.db")

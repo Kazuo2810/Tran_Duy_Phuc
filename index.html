@@ -3,81 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Phân loại Hoa Iris - Trần Duy Phúc</title>
+    <title>AI Core | Trạm Nhận Diện Iris</title>
     <style>
+        :root {
+            --primary: #00f3ff;
+            --secondary: #bc13fe;
+            --bg-dark: #0a0f1d;
+            --panel-bg: rgba(16, 26, 48, 0.85);
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Courier New', monospace; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
-        .container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            text-align: center;
-            width: 350px;
-        }
-        h2 { color: #2c3e50; margin-bottom: 5px; }
-        p { color: #7f8c8d; font-size: 14px; margin-bottom: 20px; }
-        input {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        button {
-            background-color: #27ae60;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
             width: 100%;
-            margin-top: 15px;
-            transition: 0.3s;
+            max-width: 1000px;
         }
-        button:hover { background-color: #2ecc71; }
-        #result {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #e74c3c;
-            min-height: 25px;
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.05);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
+
+        .panel::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary));
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline { 100% { left: 200%; } }
+
+        .panel-header {
+            font-size: 18px; font-weight: bold; color: var(--primary); margin-bottom: 20px;
+            text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.2); padding-bottom: 10px;
+        }
+        
+        .panel-header::before { content: '■'; margin-right: 10px; text-shadow: 0 0 10px var(--primary); }
+
+        .control-group { margin-bottom: 20px; }
+        .control-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #94a3b8; }
+        .val-display { color: var(--primary); font-weight: bold; }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #1e293b; border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: var(--primary); cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px var(--primary);
+        }
+
+        button {
+            width: 100%; padding: 15px; margin-top: 10px; background: rgba(0, 243, 255, 0.1);
+            border: 1px solid var(--primary); color: var(--primary); font-size: 16px; font-weight: bold;
+            letter-spacing: 2px; cursor: pointer; transition: 0.3s; text-transform: uppercase;
+        }
+        button:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
+        button:disabled { border-color: var(--text-muted); color: var(--text-muted); cursor: not-allowed; box-shadow: none; background: transparent;}
+
+        .terminal {
+            background: #000; padding: 15px; border-radius: 8px; font-size: 12px; color: #10b981;
+            min-height: 140px; margin-bottom: 20px; border: 1px solid #1e293b; text-align: left; overflow-y: auto;
+        }
+
+        .flower-display { display: none; text-align: center; animation: fadeIn 1s; flex-grow: 1; }
+        @keyframes fadeIn { from { opacity: 0; scale: 0.9; } to { opacity: 1; scale: 1; } }
+
+        .flower-image {
+            width: 100%; height: 160px; object-fit: cover; border-radius: 8px;
+            border: 2px solid; margin-top: 15px; transition: 0.5s;
+        }
+
+        .result-title { font-size: 24px; font-weight: bold; margin-top: 10px; text-shadow: 0 0 10px; }
+        
+        .flower-desc {
+            margin-top: 15px; padding: 12px; background: rgba(0, 0, 0, 0.6);
+            border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0;
+            font-size: 11px; color: #cbd5e1; line-height: 1.5; text-align: justify;
+            max-height: 100px; overflow-y: auto;
+        }
+
+        .sys-info { margin-top: 15px; font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
+        .status-dot { display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; margin-right: 5px;}
+
+        .link-group { display: flex; gap: 10px; margin-top: 20px; }
+        .link-btn {
+            flex: 1; padding: 10px; text-align: center; text-decoration: none;
+            font-size: 12px; font-weight: bold; border: 1px dashed var(--primary);
+            color: var(--primary); transition: 0.3s; letter-spacing: 1px;
+        }
+        .link-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+
+        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>🌸 Nhận diện Hoa Iris</h2>
-        <p>Mô hình SVM - Phát triển bởi Trần Duy Phúc</p>
-        
-        <input type="number" id="sl" placeholder="Chiều dài đài hoa (vd: 5.1)">
-        <input type="number" id="sw" placeholder="Chiều rộng đài hoa (vd: 3.5)">
-        <input type="number" id="pl" placeholder="Chiều dài cánh hoa (vd: 1.4)">
-        <input type="number" id="pw" placeholder="Chiều rộng cánh hoa (vd: 0.2)">
-        
-        <button onclick="duDoan()">DỰ ĐOÁN NGAY</button>
-        
-        <div id="result"></div>
+    <div class="dashboard">
+        <!-- Bảng điều khiển Trái: Đầu vào -->
+        <div class="panel">
+            <div class="panel-header">Cấu hình Đặc trưng Input</div>
+            
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Chiều dài đài hoa (Sepal Length)</span>
+                    <span class="val-display" id="val-sl">5.1 cm</span>
+                </div>
+                <input type="range" id="sl" min="4.0" max="8.0" step="0.1" value="5.1" oninput="updateVal('sl')">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Chiều rộng đài hoa (Sepal Width)</span>
+                    <span class="val-display" id="val-sw">3.5 cm</span>
+                </div>
+                <input type="range" id="sw" min="2.0" max="5.0" step="0.1" value="3.5" oninput="updateVal('sw')">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Chiều dài cánh hoa (Petal Length)</span>
+                    <span class="val-display" id="val-pl">1.4 cm</span>
+                </div>
+                <input type="range" id="pl" min="1.0" max="7.0" step="0.1" value="1.4" oninput="updateVal('pl')">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Chiều rộng cánh hoa (Petal Width)</span>
+                    <span class="val-display" id="val-pw">0.2 cm</span>
+                </div>
+                <input type="range" id="pw" min="0.1" max="3.0" step="0.1" value="0.2" oninput="updateVal('pw')">
+            </div>
+
+            <button id="btnPredict" onclick="duDoan()">[ Khởi chạy Model SVM ]</button>
+
+            <div class="sys-info" style="margin-top: 25px;">
+                <span>Model: SVC(kernel="linear")</span>
+                <span>Tác giả: Trần Duy Phúc</span>
+            </div>
+        </div>
+
+        <!-- Bảng điều khiển Phải: Đầu ra -->
+        <div class="panel">
+            <div class="panel-header">Terminal Phân Tích</div>
+            
+            <div class="terminal" id="terminal">
+                > Hệ thống Core sẵn sàng.<br>
+                > Chờ dữ liệu đầu vào...
+            </div>
+
+            <div class="flower-display" id="display-area">
+                <div class="result-title" id="result-name"></div>
+                <img id="flower-img" class="flower-image" src="" alt="Hoa Iris">
+                <div class="flower-desc" id="flower-desc"></div>
+            </div>
+
+            <div class="sys-info" style="margin-top: auto; padding-top: 15px;">
+                <span><span class="status-dot"></span> Server: tran-duy-phuc.onrender.com</span>
+            </div>
+            
+            <div class="link-group">
+                <a href="https://tran-duy-phuc.onrender.com/docs" target="_blank" class="link-btn">[ MỞ SWAGGER UI ]</a>
+                <a href="https://tran-duy-phuc.onrender.com/predict" target="_blank" class="link-btn">[ RAW /PREDICT ]</a>
+            </div>
+        </div>
     </div>
 
     <script>
-        function duDoan() {
-            const ketQuaDiv = document.getElementById('result');
-            ketQuaDiv.style.color = '#34495e';
-            ketQuaDiv.innerText = "Đang phân tích dữ liệu...";
+        function updateVal(id) {
+            document.getElementById('val-' + id).innerText = document.getElementById(id).value + " cm";
+        }
 
-            // Lấy dữ liệu từ các ô nhập
+        // Chỉ giữ lại giao diện màu sắc, xóa toàn bộ thông tin cứng (Hardcode)
+        const styleData = {
+            "setosa": { color: "#10b981" },
+            "versicolor": { color: "#3b82f6" },
+            "virginica": { color: "#bc13fe" }
+        };
+
+        async function typeTerminal(term, text) {
+            term.innerHTML += "> " + text + "<br>";
+            term.scrollTop = term.scrollHeight; // Tự cuộn xuống dòng mới
+            await new Promise(r => setTimeout(r, 300));
+        }
+
+        async function duDoan() {
+            const btn = document.getElementById('btnPredict');
+            const displayArea = document.getElementById('display-area');
+            const descArea = document.getElementById('flower-desc');
+            const term = document.getElementById('terminal');
+            
+            btn.disabled = true;
+            btn.innerText = "[ ĐANG KẾT NỐI API... ]";
+            displayArea.style.display = 'none';
+            term.innerHTML = ""; // Xóa terminal cũ
+
             const data = {
                 sepal_length: parseFloat(document.getElementById('sl').value),
                 sepal_width: parseFloat(document.getElementById('sw').value),
@@ -85,24 +231,58 @@
                 petal_width: parseFloat(document.getElementById('pw').value)
             };
 
-            // Gọi API máy chủ Render của bạn
-            fetch("https://tran-duy-phuc.onrender.com/predict", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                ketQuaDiv.style.color = '#e74c3c';
-                // In kết quả dự đoán ra màn hình
-                ketQuaDiv.innerText = "Kết quả: Hoa " + data.prediction.toUpperCase() + "!";
-            })
-            .catch(error => {
-                ketQuaDiv.innerText = "Lỗi kết nối máy chủ!";
-                console.error(error);
-            });
+            try {
+                // BƯỚC 1: Gửi lên Model AI của bạn
+                await typeTerminal(term, "Gửi ma trận [1x4] tới tran-duy-phuc.onrender.com/predict...");
+                const response = await fetch("https://tran-duy-phuc.onrender.com/predict", {
+                    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error("Mất kết nối máy chủ SVM");
+                const result = await response.json();
+                const loaiHoa = result.prediction.toLowerCase();
+                const style = styleData[loaiHoa];
+
+                await typeTerminal(term, `<span style="color:${style.color}">KẾT QUẢ AI: Nhận diện Lớp [${result.class_id}] - IRIS ${loaiHoa.toUpperCase()}</span>`);
+                
+                // BƯỚC 2: Tự động quét Wikipedia API để lấy thông tin thực tế
+                await typeTerminal(term, `Khởi tạo quét Wikipedia Tiếng Việt cho từ khóa "Iris_${loaiHoa}"...`);
+
+                // Đổi 'en' thành 'vi' để truy cập Wikipedia Việt Nam
+                const wikiAPI = `https://vi.wikipedia.org/api/rest_v1/page/summary/Iris_${loaiHoa}`;
+                const wikiRes = await fetch(wikiAPI);
+                const wikiData = await wikiRes.json();
+                
+                await typeTerminal(term, "Truy xuất thành công dữ liệu từ Wikipedia. Đang render giao diện...");
+
+                // Lấy ảnh thật từ Wiki (nếu không có thì dùng ảnh xám)
+                const realImage = wikiData.thumbnail ? wikiData.thumbnail.source : "https://via.placeholder.com/400x200/333/fff?text=NO+IMAGE+FOUND";
+                // Lấy đoạn mô tả từ Wiki
+                const realDesc = wikiData.extract ? wikiData.extract : "Không tìm thấy thông tin trên Wikipedia.";
+
+                // Đổ dữ liệu lên màn hình
+                const title = document.getElementById('result-name');
+                title.innerText = "IRIS " + loaiHoa.toUpperCase();
+                title.style.color = style.color;
+                
+                const img = document.getElementById('flower-img');
+                img.src = realImage;
+                img.style.borderColor = style.color;
+                img.style.boxShadow = `0 0 15px ${style.color}`;
+
+                descArea.innerText = "[WIKIPEDIA EXTRACT]: " + realDesc;
+                descArea.style.borderColor = style.color;
+                
+                displayArea.style.display = 'flex';
+                displayArea.style.flexDirection = 'column';
+
+            } catch (error) {
+                await typeTerminal(term, `<span style="color:#ef4444">LỖI HỆ THỐNG: ${error.message}</span>`);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "[ KHỞI CHẠY MODEL SVM ]";
+            }
         }
     </script>
-
 </body>
 </html>
