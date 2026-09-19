@@ -69,7 +69,7 @@ def predict(data: IrisInput):
 
     return {"class_id": pred_id, "prediction": pred_name}
 
-# API mới: Lấy lịch sử để vẽ biểu đồ Dashboard
+# ĐÂY LÀ ĐOẠN API LẤY LỊCH SỬ MÀ BẠN BỊ THIẾU:
 @app.get("/history")
 def get_history():
     conn = sqlite3.connect("iris_history.db")
