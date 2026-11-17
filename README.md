@@ -1,7 +1,6 @@
 <!-- Ghi chú: tài liệu này mô tả kiến trúc, cách chạy và các quy ước vận hành của dự án. -->
 # Hệ thống nhận diện hoa Iris – 5 mô hình SVM và xác thực tập trung IdP
 
-> Ghi chú chi tiết theo từng file, class, endpoint và hàm: [`docs/FILE_FUNCTION_NOTES.md`](docs/FILE_FUNCTION_NOTES.md).
 
 ## 1. Giới thiệu
 
