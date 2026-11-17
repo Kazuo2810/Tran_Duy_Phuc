@@ -1,44 +1,77 @@
-"""Router: models — các endpoint cùng nhóm chức năng.
-
-Ghi chú: module này công bố trạng thái model, dữ liệu Iris và các chỉ số đánh giá.
+"""
+Router: models — Cung cấp thông tin hệ thống, danh sách mô hình học máy, 
+chỉ số đánh giá, bộ dữ liệu mẫu Iris và biểu đồ trực quan hóa.
 """
 from fastapi import APIRouter
 from common import *
 
 router = APIRouter()
 
+
 @router.get('/health', tags=['Hệ thống'], summary='Kiểm tra trạng thái hệ thống')
 def health():
-    """Kiểm tra kết nối database và số lượng mô hình đã sẵn sàng."""
-    ok=True
+    """
+    Health-check endpoint dùng để giám sát tình trạng hoạt động của server:
+    Kiểm tra kết nối tới Database và xác nhận đủ 5 mô hình đã được nạp vào bộ nhớ.
+    """
+    ok = True
     try:
-        with db.engine.connect() as con: con.execute(text('SELECT 1'))
-    except SQLAlchemyError: ok=False
-    return Response(json.dumps({'status':'ok' if ok and len(MODELS)==5 else 'degraded','database':ok,'models':list(MODELS)}),media_type='application/json',status_code=200 if ok and len(MODELS)==5 else 503)
+        with db.engine.connect() as con:
+            con.execute(text('SELECT 1'))
+    except SQLAlchemyError:
+        ok = False
+
+    is_healthy = ok and len(MODELS) == 5
+    return Response(
+        json.dumps({
+            'status': 'ok' if is_healthy else 'degraded',
+            'database': ok,
+            'models': list(MODELS)
+        }),
+        media_type='application/json',
+        status_code=200 if is_healthy else 503
+    )
 
 
 @router.get('/api/models', tags=['Mô hình và đánh giá'], summary='Danh sách mô hình')
 def models():
-    """Trả danh sách mô hình cùng trạng thái và báo cáo đánh giá."""
-    return [{'model':k,'name':v,'available':k in MODELS,'report':REPORTS.get(k)} for k,v in MODEL_NAMES.items()]
+    """Trả về danh sách tất cả mô hình được cấu hình kèm trạng thái sẵn sàng và báo cáo đánh giá."""
+    return [
+        {
+            'model': k,
+            'name': v,
+            'available': k in MODELS,
+            'report': REPORTS.get(k)
+        }
+        for k, v in MODEL_NAMES.items()
+    ]
 
 
 @router.get('/api/models/{model}/evaluate', tags=['Mô hình và đánh giá'], summary='Kết quả đánh giá mô hình')
-def evaluate(model:str):
-    """Trả báo cáo đánh giá đã lưu của một mô hình."""
-    require_model(model); return REPORTS[model]
+def evaluate(model: str):
+    """Trả về chi tiết các chỉ số đánh giá (Accuracy, F1, Confusion Matrix...) của một mô hình."""
+    require_model(model)
+    return REPORTS[model]
 
 
 @router.get('/api/data', tags=['Dữ liệu'], summary='Xem dữ liệu Iris')
 def dataset():
-    """Trả toàn bộ dữ liệu Iris cùng metadata và giới hạn đặc trưng."""
-    iris=load_iris()
-    return {'features':FEATURES,'labels':LABELS,'classes':iris.target_names.tolist(),'data':iris.data.tolist(),'target':iris.target.tolist(),'min':iris.data.min(axis=0).tolist(),'max':iris.data.max(axis=0).tolist()}
+    """Trả về toàn bộ dữ liệu gốc của bộ hoa Iris (150 mẫu) kèm giá trị min/max của từng đặc trưng."""
+    iris = load_iris()
+    return {
+        'features': FEATURES,
+        'labels': LABELS,
+        'classes': iris.target_names.tolist(),
+        'data': iris.data.tolist(),
+        'target': iris.target.tolist(),
+        'min': iris.data.min(axis=0).tolist(),
+        'max': iris.data.max(axis=0).tolist()
+    }
 
 
 @router.get('/api/data/sample.csv', tags=['Dữ liệu'], summary='Tải file dữ liệu mẫu CSV')
 def download_sample_data():
-    """Tải bộ dữ liệu Iris gốc gồm 150 mẫu; không cần đăng nhập."""
+    """Xuất bộ dữ liệu Iris gốc gồm 150 mẫu ra file CSV (mã hóa UTF-8 BOM để mở tốt trên Excel)."""
     iris = load_iris()
     buffer = StringIO(newline='')
     writer = csv.writer(buffer)
@@ -53,25 +86,40 @@ def download_sample_data():
 
 
 @lru_cache(maxsize=80)
-def cached_visual(model,kind,x,y):
-    """Tạo và cache dữ liệu hình ảnh trực quan tương ứng."""
-    estimator=require_model(model)
-    if kind=='decision': return decision(estimator,model,x,y)
-    if kind=='tree': raise HTTPException(404,'Các mô hình hiện tại đều là SVM, không có biểu đồ cây.')
-    if kind=='margin' and model=='SVM': return margin_image()
-    raise HTTPException(404,'Model này không có kiểu hình được yêu cầu.')
+def cached_visual(model, kind, x, y):
+    """
+    Hàm vẽ và lưu cache (tối đa 80 ảnh) các biểu đồ trực quan hóa của mô hình:
+    - 'decision': Vẽ vùng ranh giới quyết định (Decision Boundary) trên 2 trục đặc trưng (x, y).
+    - 'margin': Vẽ lề phân tách (chỉ áp dụng cho mô hình SVM).
+    """
+    estimator = require_model(model)
+    if kind == 'decision':
+        return decision(estimator, model, x, y)
+    if kind == 'tree':
+        raise HTTPException(404, 'Các mô hình hiện tại đều là SVM, không có biểu đồ cây.')
+    if kind == 'margin' and model == 'SVM':
+        return margin_image()
+    raise HTTPException(404, 'Model này không có kiểu hình được yêu cầu.')
 
 
 @router.get('/api/models/{model}/visual/{kind}', tags=['Mô hình và đánh giá'], summary='Biểu đồ trực quan hóa')
-def visual(model:str,kind:str,x:int=Query(2,ge=0,le=3),y:int=Query(3,ge=0,le=3)):
-    """Trả biểu đồ PNG cho mô hình và loại trực quan được yêu cầu."""
-    if x==y: raise HTTPException(422,'Hai trục phải khác nhau.')
-    return Response(cached_visual(model,kind,x,y),media_type='image/png')
+def visual(
+    model: str,
+    kind: str,
+    x: int = Query(2, ge=0, le=3, description='Chỉ số đặc trưng trục X (0-3)'),
+    y: int = Query(3, ge=0, le=3, description='Chỉ số đặc trưng trục Y (0-3)')
+):
+    """Trả về hình ảnh PNG biểu diễn trực quan ranh giới phân loại của mô hình."""
+    if x == y:
+        raise HTTPException(422, 'Hai trục phải khác nhau.')
+    return Response(cached_visual(model, kind, x, y), media_type='image/png')
 
 
 @router.get('/api/models/{model}/importance', tags=['Mô hình và đánh giá'], summary='Mức độ quan trọng của đặc trưng')
-def importance(model:str):
-    """Trả mức độ quan trọng của các đặc trưng nếu mô hình hỗ trợ."""
-    m=require_model(model)
-    return {'features':LABELS,'values':m.feature_importances_.tolist() if hasattr(m,'feature_importances_') else None}
-
+def importance(model: str):
+    """Trả về trọng số mức độ quan trọng của 4 đặc trưng (nếu mô hình hỗ trợ thuộc tính `feature_importances_`)."""
+    m = require_model(model)
+    return {
+        'features': LABELS,
+        'values': m.feature_importances_.tolist() if hasattr(m, 'feature_importances_') else None
+    }
