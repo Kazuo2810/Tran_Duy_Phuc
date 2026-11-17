@@ -1,4 +1,5 @@
 {
+  "_comment": "Ghi chú: báo cáo đánh giá của model SVM_OPT; model triển khai được lưu riêng trong cùng thư mục.",
   "model": "SVM_OPT",
   "name": "SVM RBF tối ưu tham số (GridSearchCV)",
   "version": "cb1b08c06b45",

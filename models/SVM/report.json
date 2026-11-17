@@ -1,4 +1,5 @@
 {
+  "_comment": "Ghi chú: báo cáo đánh giá của model SVM; model triển khai được lưu riêng trong cùng thư mục.",
   "model": "SVM",
   "name": "SVM Linear",
   "version": "264361936ef5",

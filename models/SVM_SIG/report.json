@@ -1,4 +1,5 @@
 {
+  "_comment": "Ghi chú: báo cáo đánh giá của model SVM_SIG; model triển khai được lưu riêng trong cùng thư mục.",
   "model": "SVM_SIG",
   "name": "SVM Sigmoid",
   "version": "28f367ed54e6",

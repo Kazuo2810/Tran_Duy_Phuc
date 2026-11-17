@@ -1,4 +1,5 @@
 {
+  "_comment": "Ghi chú: báo cáo đánh giá của model SVM_RBF; model triển khai được lưu riêng trong cùng thư mục.",
   "model": "SVM_RBF",
   "name": "SVM RBF",
   "version": "6f7eed3dd1a6",

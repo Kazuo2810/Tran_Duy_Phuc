@@ -1,3 +1,4 @@
+// Ghi chú: dựng phần giới thiệu, mẫu đo Iris minh họa và hiệu ứng trang đầu.
 // PHẦN 5 — Giới thiệu: mẫu nhập, thẻ loài và hiệu ứng cánh hoa.
         const uploadedIrisSample = { "sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2 };
         // Kiểm tra đối tượng có đủ bốn số đo rồi nạp vào biểu mẫu dự đoán.

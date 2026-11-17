@@ -2,6 +2,8 @@
 
 Mỗi Web Service phải được đăng ký bằng client_id/client_secret riêng.
 Client secret chỉ được gửi từ backend của Web Service tới IdP, không đưa ra trình duyệt.
+
+Ghi chú: module này là dịch vụ xác thực trung tâm và quản lý token JWT.
 """
 import os
 import json

@@ -1,4 +1,7 @@
-"""Trực quan model thật; tách riêng hình SVM nhị phân minh họa margin."""
+"""Trực quan model thật; tách riêng hình SVM nhị phân minh họa margin.
+
+Ghi chú: module này chỉ tạo ảnh trực quan từ dữ liệu và model, không sửa model.
+"""
 from io import BytesIO
 from functools import lru_cache
 from threading import Lock

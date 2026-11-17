@@ -1,4 +1,7 @@
-"""Router: history — các endpoint cùng nhóm chức năng."""
+"""Router: history — các endpoint cùng nhóm chức năng.
+
+Ghi chú: dữ liệu lịch sử luôn được giới hạn theo chủ sở hữu phiên đăng nhập.
+"""
 from fastapi import APIRouter
 from common import *
 

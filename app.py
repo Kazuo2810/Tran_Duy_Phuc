@@ -1,5 +1,7 @@
 """Điểm khởi chạy FastAPI. Các endpoint được chia trong thư mục routers/.
 Chạy: python -m uvicorn app:app --reload
+
+Ghi chú: module này lắp ráp ứng dụng chính, middleware, vòng đời và các router.
 """
 import logging
 import os

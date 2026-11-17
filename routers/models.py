@@ -1,4 +1,7 @@
-"""Router: models — các endpoint cùng nhóm chức năng."""
+"""Router: models — các endpoint cùng nhóm chức năng.
+
+Ghi chú: module này công bố trạng thái model, dữ liệu Iris và các chỉ số đánh giá.
+"""
 from fastapi import APIRouter
 from common import *
 

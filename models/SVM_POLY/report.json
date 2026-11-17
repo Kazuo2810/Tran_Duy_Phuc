@@ -1,4 +1,5 @@
 {
+  "_comment": "Ghi chú: báo cáo đánh giá của model SVM_POLY; model triển khai được lưu riêng trong cùng thư mục.",
   "model": "SVM_POLY",
   "name": "SVM Polynomial",
   "version": "6d3908432723",

@@ -1,4 +1,7 @@
-"""Huấn luyện, đánh giá độc lập và lưu 5 cấu hình SVM cho bộ dữ liệu Iris."""
+"""Huấn luyện, đánh giá độc lập và lưu 5 cấu hình SVM cho bộ dữ liệu Iris.
+
+Ghi chú: chạy module này để tái huấn luyện model và cập nhật báo cáo trong models/.
+"""
 import hashlib
 import json
 from datetime import datetime, timezone

@@ -1,3 +1,4 @@
+// Ghi chú: xử lý phiên tài khoản, quyền quản trị và lịch sử ở phía trình duyệt.
 // PHẦN 6 — Xác thực, quản trị và chọn lịch sử. Backend là nơi quyết định quyền thật.
         let irisAuthMode = 'login'; let irisAuthFocus = null;
         // Chuyển đăng nhập/đăng ký; cập nhật trường bắt buộc và xóa mật khẩu cũ.

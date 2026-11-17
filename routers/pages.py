@@ -1,4 +1,7 @@
-"""Router: pages — các endpoint cùng nhóm chức năng."""
+"""Router: pages — các endpoint cùng nhóm chức năng.
+
+Ghi chú: module này phục vụ HTML giao diện và kiểm tra route chi tiết model.
+"""
 from fastapi import APIRouter
 from common import *
 

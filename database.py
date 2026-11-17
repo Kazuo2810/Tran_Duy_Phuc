@@ -1,4 +1,7 @@
-"""Kết nối SQL và khai báo bảng dữ liệu."""
+"""Kết nối SQL và khai báo bảng dữ liệu.
+
+Ghi chú: module này tạo engine, schema và các thao tác khởi tạo cơ sở dữ liệu.
+"""
 
 import os
 from pathlib import Path

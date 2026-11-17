@@ -1,4 +1,7 @@
-"""Cấu hình và hàm dùng chung cho các router của hệ thống Iris."""
+"""Cấu hình và hàm dùng chung cho các router của hệ thống Iris.
+
+Ghi chú: module này cung cấp cấu hình, model đã nạp, xác thực và helper dùng chung.
+"""
 # === app.py ===
 """FastAPI phục vụ giao diện, mô hình, SQL và Excel. Chạy: python -m uvicorn app:app."""
 # === 1. THƯ VIỆN VÀ CẤU HÌNH ===

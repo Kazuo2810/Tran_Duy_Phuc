@@ -1,3 +1,4 @@
+// Ghi chú: trạng thái dùng chung, cấu hình API và các tiện ích nền của giao diện.
 'use strict';
         // PHẦN 4 — Cấu hình API và trạng thái ứng dụng.
         // epoch/logEpoch/visualEpoch chặn phản hồi cũ; token lấy từ phiên SQL của backend.

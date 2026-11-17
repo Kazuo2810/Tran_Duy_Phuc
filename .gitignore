@@ -1,3 +1,4 @@
+# Ghi chú: các mẫu bí mật, môi trường ảo và dữ liệu sinh tự động không được commit.
 .env
 .env.*
 !.env.example

@@ -1,4 +1,7 @@
-"""Router chuyển tiếp đăng ký/đăng nhập tới IdP bằng thông tin client riêng."""
+"""Router chuyển tiếp đăng ký/đăng nhập tới IdP bằng thông tin client riêng.
+
+Ghi chú: secret OAuth chỉ được sử dụng ở backend, không gửi xuống trình duyệt.
+"""
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from common import *

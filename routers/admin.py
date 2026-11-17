@@ -1,4 +1,7 @@
-"""Router: admin — các endpoint cùng nhóm chức năng."""
+"""Router: admin — các endpoint cùng nhóm chức năng.
+
+Ghi chú: chỉ tài khoản quản trị hợp lệ mới được truy cập các endpoint tại đây.
+"""
 from fastapi import APIRouter
 from common import *
 

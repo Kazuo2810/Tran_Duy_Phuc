@@ -1,3 +1,4 @@
+# Ghi chú: khai báo hai web service và cơ sở dữ liệu dùng chung trên Render.
 services:
   - type: web
     name: iris-idp-sso

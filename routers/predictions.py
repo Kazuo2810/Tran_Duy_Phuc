@@ -1,4 +1,7 @@
-"""Router: predictions — các endpoint cùng nhóm chức năng."""
+"""Router: predictions — các endpoint cùng nhóm chức năng.
+
+Ghi chú: module này kiểm tra đầu vào, gọi model, lưu log và cấp phiếu xuất tạm thời.
+"""
 from fastapi import APIRouter
 from common import *
 

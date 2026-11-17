@@ -1,4 +1,7 @@
-"""Router: exports — các endpoint cùng nhóm chức năng."""
+"""Router: exports — các endpoint cùng nhóm chức năng.
+
+Ghi chú: các hàm trong module này tạo workbook Excel từ dữ liệu đã được lọc.
+"""
 from fastapi import APIRouter
 from common import *
 
