@@ -69,6 +69,7 @@ class RegisterInput(BaseModel):
     @field_validator("username")
     @classmethod
     def clean_username(cls, value):
+        """Chuẩn hóa và kiểm tra định dạng tên đăng nhập."""
         value = value.strip().lower()
         if not 3 <= len(value) <= 80 or not all(c.isalnum() or c in "._-" for c in value):
             raise ValueError("Tên đăng nhập từ 3–80 ký tự, gồm chữ, số, dấu chấm, gạch dưới hoặc gạch ngang.")
@@ -76,6 +77,7 @@ class RegisterInput(BaseModel):
     @field_validator("name")
     @classmethod
     def clean_name(cls, value):
+        """Loại bỏ khoảng trắng và bảo đảm họ tên không rỗng."""
         value = value.strip()
         if not value:
             raise ValueError("Họ tên không được để trống.")
@@ -87,9 +89,11 @@ class LoginInput(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 def secret_digest(secret: str) -> str:
+    """Tạo bản băm SHA-256 cho bí mật của client."""
     return hashlib.sha256(secret.encode("utf-8")).hexdigest()
 
 def load_client(client_id: str, client_secret: str):
+    """Tải và xác thực thông tin client gọi tới IdP."""
     if not client_id or not client_secret:
         raise HTTPException(401, "Thiếu thông tin định danh Web Service.")
     with engine.connect() as con:
@@ -107,9 +111,11 @@ def require_client(
     x_client_id: str = Header(default="", alias="X-Client-ID"),
     x_client_secret: str = Header(default="", alias="X-Client-Secret"),
 ):
+    """Dependency lấy thông tin client từ các HTTP header."""
     return load_client(x_client_id, x_client_secret)
 
 def create_jwt_token(user_id: str, username: str, name: str, is_admin: bool, client: dict) -> str:
+    """Tạo JWT chứa danh tính, quyền và thời hạn truy cập của người dùng."""
     now = datetime.now(timezone.utc)
     payload = {
         "iss": IDP_ISSUER.rstrip("/"),
@@ -127,6 +133,7 @@ def create_jwt_token(user_id: str, username: str, name: str, is_admin: bool, cli
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 def token_response(user_id, username, name, is_admin, client):
+    """Đóng gói JWT và thông tin người dùng thành phản hồi đăng nhập."""
     token = create_jwt_token(user_id, username, name, is_admin, client)
     return {
         "access_token": token,
@@ -189,6 +196,7 @@ def setup_idp():
 
 @app.get("/health")
 def health():
+    """Kiểm tra IdP có thể truy cập bảng client hay không."""
     with engine.connect() as con:
         con.execute(select(clients.c.client_id).limit(1)).first()
     return {"status": "ok", "service": "identity-provider"}
@@ -202,6 +210,7 @@ def list_clients():
 
 @app.post("/api/auth/register", status_code=201)
 def register(data: RegisterInput, client=Depends(require_client)):
+    """Tạo tài khoản mới và trả token đăng nhập cho client hợp lệ."""
     user_id = str(uuid.uuid4())
     row = {
         "id": user_id, "username": data.username, "name": data.name,
@@ -217,6 +226,7 @@ def register(data: RegisterInput, client=Depends(require_client)):
 
 @app.post("/api/auth/login")
 def login(data: LoginInput, client=Depends(require_client)):
+    """Xác thực mật khẩu và cấp token cho tài khoản hợp lệ."""
     with engine.connect() as con:
         row = con.execute(select(users).where(users.c.username == data.username.strip().lower())).mappings().first()
     invalid = HTTPException(401, "Tên đăng nhập hoặc mật khẩu không đúng.")

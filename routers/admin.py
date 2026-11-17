@@ -7,6 +7,7 @@ router = APIRouter()
 @router.get('/api/admin/users', tags=['Quản trị'], summary='Danh sách người dùng')
 def admin_users(search: str = Query('', max_length=80), page: int = Query(1, ge=1),
                 size: int = Query(20, ge=1, le=100), who=Depends(require_admin)):
+    """Liệt kê người dùng theo từ khóa với phân trang cho quản trị viên."""
     condition = None
     if search.strip():
         pattern = '%' + search.strip() + '%'
@@ -29,6 +30,7 @@ def admin_logs(model: str | None = None, user_id: str | None = None,
                start: date | None = None, end: date | None = None,
                page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=100),
                who=Depends(require_admin)):
+    """Liệt kê lịch sử dự đoán toàn hệ thống theo bộ lọc và phân trang."""
     if model:
         check_model(model)
     lower, upper = date_bounds(start, end)
@@ -67,6 +69,7 @@ class AdminDeleteLogsInput(BaseModel):
 
 @router.delete('/api/admin/logs', tags=['Quản trị'], summary='Xóa lịch sử theo quyền quản trị')
 def admin_delete_logs(data: AdminDeleteLogsInput, who=Depends(require_admin)):
+    """Xóa nhiều log thuộc các mô hình trong cùng một transaction."""
     if not data.confirm:
         raise HTTPException(400, 'Cần xác nhận xóa lịch sử đã chọn.')
     groups = {}

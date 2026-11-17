@@ -18,12 +18,14 @@ LOCK = Lock()
 COLORS = ['#0ea5e9', '#f59e0b', '#8b5cf6']
 
 def png(fig):
+    """Chuyển một matplotlib figure thành dữ liệu PNG trong bộ nhớ."""
     buf = BytesIO()
     fig.savefig(buf, format='png', dpi=130, bbox_inches='tight')
     plt.close(fig)
     return buf.getvalue()
 
 def decision(model, key, a=2, b=3):
+    """Vẽ lát cắt vùng quyết định của mô hình trên hai đặc trưng."""
     iris = load_iris(); X, y = iris.data, iris.target
     with LOCK:
         fig, ax = plt.subplots(figsize=(9, 5))
@@ -44,6 +46,7 @@ def decision(model, key, a=2, b=3):
         return png(fig)
 
 def tree_image(model, key):
+    """Vẽ cây quyết định hoặc cây đầu tiên của Random Forest."""
     with LOCK:
         fig, ax = plt.subplots(figsize=(19, 9))
         tree = model if key == 'DT' else model.estimators_[0]
@@ -52,6 +55,7 @@ def tree_image(model, key):
         return png(fig)
 
 def margin_image():
+    """Vẽ minh họa biên và vector hỗ trợ của SVM nhị phân."""
     with LOCK:
         iris=load_iris(); X=iris.data[iris.target<2,2:4]; y=iris.target[iris.target<2]
         m=make_pipeline(StandardScaler(), SVC(kernel='linear', C=1.0)).fit(X,y)

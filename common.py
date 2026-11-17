@@ -45,19 +45,23 @@ for key in MODEL_NAMES:
 VN = ZoneInfo('Asia/Ho_Chi_Minh')
 SECRET = os.getenv('EXPORT_SECRET', secrets.token_hex(32)).encode()
 def check_model(model):
+    """Kiểm tra mã mô hình có nằm trong danh sách được hỗ trợ."""
     if model not in MODEL_NAMES: raise HTTPException(404,'Model không hợp lệ.')
     return model
 def require_model(model):
+    """Kiểm tra và trả mô hình đã được nạp để dự đoán."""
     check_model(model)
     if model not in MODELS: raise HTTPException(503,'Model chưa sẵn sàng. Hãy chạy train.py.')
     return MODELS[model]
 def date_bounds(start, end):
+    """Chuyển khoảng ngày theo múi giờ Việt Nam sang giới hạn UTC."""
     if start and end and start > end:
         raise HTTPException(422, 'Ngày bắt đầu phải không sau ngày kết thúc.')
     lower = datetime.combine(start, daytime.min, VN).astimezone(timezone.utc).isoformat() if start else None
     upper = datetime.combine(end+timedelta(days=1), daytime.min, VN).astimezone(timezone.utc).isoformat() if end else None
     return lower, upper
 def public_log(row):
+    """Loại bỏ thông tin nội bộ owner trước khi trả log cho client."""
     return {k: v for k, v in row.items() if k != 'owner'}
 JWT_SECRET = os.getenv("JWT_SECRET", "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET")
 JWT_ALGORITHM = "HS256"
@@ -68,12 +72,15 @@ OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET", "")
 OAUTH_REQUIRED_SCOPE = os.getenv("OAUTH_REQUIRED_SCOPE", "iris:access")
 
 def idp_client_headers():
+    """Tạo header xác thực khi gọi trung tâm danh tính."""
     if not OAUTH_CLIENT_SECRET:
         raise HTTPException(503, "Web Service chưa được cấu hình OAUTH_CLIENT_SECRET.")
     return {"X-Client-ID": OAUTH_CLIENT_ID, "X-Client-Secret": OAUTH_CLIENT_SECRET}
 def public_user(row):
+    """Chọn các trường người dùng được phép công khai."""
     return {**{key: row[key] for key in ('id', 'username', 'name')}, 'is_admin': bool(row.get('is_admin', False))}
 def session(x_session_token: str = Header(default='')):
+    """Giải mã, kiểm tra quyền và chuyển JWT thành thông tin phiên."""
     if not x_session_token:
         raise HTTPException(401, 'Vui lòng đăng nhập.')
     try:
@@ -106,10 +113,12 @@ def session(x_session_token: str = Header(default='')):
     except jwt.InvalidTokenError:
         raise HTTPException(401, 'Phiên đăng nhập không hợp lệ.')
 def require_admin(who=Depends(session)):
+    """Bảo đảm phiên hiện tại thuộc tài khoản quản trị."""
     if not who['is_admin']:
         raise HTTPException(403, 'Chỉ tài khoản quản trị được truy cập.')
     return who
 def query_rows(owner,model=None,user=None,start=None,end=None):
+    """Truy vấn, lọc và sắp xếp lịch sử dự đoán của một chủ tài khoản."""
     if model: check_model(model)
     lower, upper = date_bounds(start, end)
     rows=[]

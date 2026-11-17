@@ -69,6 +69,7 @@ def estimators():
 
 
 def _json_parameters(estimator, tuned_search=None):
+    """Chuyển tham số huấn luyện sang cấu trúc có thể ghi vào JSON."""
     if tuned_search is not None:
         return {
             "method": "GridSearchCV",
@@ -84,6 +85,7 @@ def _json_parameters(estimator, tuned_search=None):
 
 
 def train_all(output=ROOT / "models"):
+    """Huấn luyện, đánh giá và lưu artifact cho toàn bộ mô hình Iris."""
     iris = load_iris()
     X, y = iris.data, iris.target
     train_indices, test_indices = train_test_split(

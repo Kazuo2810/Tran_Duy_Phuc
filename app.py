@@ -15,6 +15,7 @@ from routers import auth, admin, predictions, models, history, exports, pages
 
 @asynccontextmanager
 async def lifespan(app):
+    """Khởi tạo cơ sở dữ liệu khi ứng dụng bắt đầu chạy."""
     db.init_db()
     yield
 
@@ -39,6 +40,7 @@ app.mount('/static', StaticFiles(directory=ROOT / 'static'), name='static')
 
 @app.exception_handler(RequestValidationError)
 async def validation_error(request, exc):
+    """Chuẩn hóa thông báo lỗi khi dữ liệu request không hợp lệ."""
     fields = ', '.join(str(e['loc'][-1]) for e in exc.errors())
     return JSONResponse(status_code=422, content={
         'detail': 'Dữ liệu không hợp lệ tại: ' + fields +
@@ -47,6 +49,7 @@ async def validation_error(request, exc):
 
 @app.exception_handler(SQLAlchemyError)
 async def sql_error(request, exc):
+    """Ghi log và trả lỗi dịch vụ khi truy vấn cơ sở dữ liệu thất bại."""
     logging.exception('Lỗi database', exc_info=exc)
     return JSONResponse(status_code=503, content={
         'detail': 'Không thể truy cập database. Vui lòng thử lại.'

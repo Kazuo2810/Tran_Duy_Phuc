@@ -143,6 +143,7 @@ for model in MODEL_NAMES:
 
 
 def init_db():
+    """Chạy migration cần thiết và tạo các bảng còn thiếu."""
     # Migration for databases created before the admin feature.
     with engine.begin() as con:
         inspector = inspect(con)

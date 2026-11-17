@@ -6,12 +6,14 @@ router = APIRouter()
 
 @router.get('/api/logs', tags=['Lịch sử'], summary='Lịch sử cá nhân — tất cả hoặc lọc theo mô hình')
 def get_logs(model:str|None=None,user:str|None=None,start:date|None=None,end:date|None=None,page:int=Query(1,ge=1),size:int=Query(20,ge=1,le=100),who=Depends(session)):
+    """Lấy lịch sử dự đoán cá nhân, có lọc và phân trang."""
     rows=query_rows(who['owner'],model,user,start,end)
     return {'items':rows[(page-1)*size:page*size],'total':len(rows),'page':page,'size':size}
 
 
 @router.get('/api/models/{model}/logs', tags=['Lịch sử'], summary='Lịch sử cá nhân — một mô hình')
 def model_logs(model:str,user:str|None=None,start:date|None=None,end:date|None=None,page:int=Query(1,ge=1),size:int=Query(20,ge=1,le=100),who=Depends(session)):
+    """Lấy lịch sử cá nhân giới hạn trong một mô hình."""
     check_model(model)
     return get_logs(model,user,start,end,page,size,who)
 
@@ -23,6 +25,7 @@ class DeleteInput(BaseModel):
 
 @router.delete('/api/models/{model}/logs', tags=['Lịch sử'], summary='Xóa lịch sử cá nhân theo mô hình')
 def delete_logs(model:str,data:DeleteInput,who=Depends(session)):
+    """Xóa các log thuộc đúng tài khoản và mô hình hiện tại."""
     check_model(model)
     if not data.confirm: raise HTTPException(400,'Cần xác nhận xóa các ID đã chọn.')
     table=db.logs[model]

@@ -8,6 +8,7 @@ HEADERS=['ID','Ngày giờ Việt Nam','Người thực hiện','Mô hình','Phi
 
 
 def style_sheet(ws):
+    """Định dạng tiêu đề, bộ lọc và độ rộng cột của worksheet."""
     ws.freeze_panes='A2'; ws.auto_filter.ref=ws.dimensions
     for cell in ws[1]: cell.font=Font(bold=True,color='FFFFFF'); cell.fill=PatternFill('solid',fgColor='0891B2')
     for col in ws.columns:
@@ -16,6 +17,7 @@ def style_sheet(ws):
 
 
 def excel_response(rows):
+    """Tạo file Excel gồm tổng hợp, chi tiết theo mô hình và ghi chú."""
     book=Workbook(); summary=book.active; summary.title='Tổng hợp'
     summary.append(['Mô hình','Số bản ghi','Accuracy test','F1 macro','CV train trung bình'])
     for key in MODEL_NAMES:
@@ -44,6 +46,7 @@ def excel_response(rows):
 
 @router.get('/api/export', tags=['Xuất Excel'], summary='Xuất lịch sử dự đoán')
 def export(model:str|None=None,user:str|None=None,start:date|None=None,end:date|None=None,who=Depends(session)):
+    """Xuất lịch sử dự đoán của người dùng theo các bộ lọc đã chọn."""
     rows=query_rows(who['owner'],model,user,start,end)
     if not rows: raise HTTPException(404,'Không có bản ghi phù hợp để xuất.')
     return excel_response(rows)
@@ -55,5 +58,6 @@ class ExportInput(BaseModel):
 
 @router.post('/api/export-current', tags=['Xuất Excel'], summary='Xuất kết quả dự đoán hiện tại')
 def export_current(data:ExportInput,who=Depends(session)):
+    """Xuất kết quả dự đoán hiện tại từ token tạm thời đã ký."""
     return excel_response([verify_result(data.token,who['owner'])])
 

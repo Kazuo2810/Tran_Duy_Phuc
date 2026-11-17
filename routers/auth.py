@@ -13,6 +13,7 @@ class RegisterInput(BaseModel):
     @field_validator('username')
     @classmethod
     def clean_username(cls, value):
+        """Chuẩn hóa và kiểm tra tên đăng nhập trước khi gửi tới IdP."""
         value = value.strip().lower()
         if not 3 <= len(value) <= 80 or not all(c.isalnum() or c in '._-' for c in value):
             raise ValueError('Tên đăng nhập từ 3–80 ký tự, gồm chữ, số, dấu chấm, gạch dưới hoặc gạch ngang.')
@@ -20,6 +21,7 @@ class RegisterInput(BaseModel):
     @field_validator('name')
     @classmethod
     def clean_name(cls, value):
+        """Loại bỏ khoảng trắng và kiểm tra họ tên không rỗng."""
         value = value.strip()
         if not value:
             raise ValueError('Họ tên không được để trống.')
@@ -31,6 +33,7 @@ class LoginInput(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 async def call_idp(path: str, payload: dict):
+    """Gửi yêu cầu xác thực tới Identity Provider và chuẩn hóa lỗi mạng."""
     headers = idp_client_headers()
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -49,16 +52,20 @@ async def call_idp(path: str, payload: dict):
 
 @router.post('/api/auth/register', status_code=201, tags=['Tài khoản'], summary='Đăng ký tài khoản qua IdP')
 async def register(data: RegisterInput):
+    """Chuyển tiếp yêu cầu đăng ký tài khoản tới IdP."""
     return await call_idp('/api/auth/register', data.model_dump())
 
 @router.post('/api/auth/login', tags=['Tài khoản'], summary='Đăng nhập qua IdP')
 async def login(data: LoginInput):
+    """Chuyển tiếp yêu cầu đăng nhập tới IdP."""
     return await call_idp('/api/auth/login', data.model_dump())
 
 @router.get('/api/auth/me', tags=['Tài khoản'], summary='Thông tin tài khoản hiện tại')
 def auth_me(who=Depends(session)):
+    """Trả thông tin người dùng của phiên đăng nhập hiện tại."""
     return {'user': {'id': who['id'], 'username': who['username'], 'name': who['name'], 'is_admin': who['is_admin'], 'client_id': who['client_id']}}
 
 @router.post('/api/auth/logout', tags=['Tài khoản'], summary='Đăng xuất')
 def logout():
+    """Trả thông báo đăng xuất để frontend xóa token cục bộ."""
     return {'message': 'Đã đăng xuất.'}

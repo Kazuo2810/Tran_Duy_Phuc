@@ -13,12 +13,14 @@ class PredictionInput(BaseModel):
 
 
 def sign_result(row,owner):
+    """Ký kết quả dự đoán để cho phép xuất tạm thời theo đúng chủ sở hữu."""
     raw=json.dumps({'row':row,'owner':owner,'expires':time.time()+3600},ensure_ascii=False).encode()
     encoded=base64.urlsafe_b64encode(raw).decode()
     return encoded+'.'+hmac.new(SECRET,encoded.encode(),hashlib.sha256).hexdigest()
 
 
 def verify_result(token,owner):
+    """Kiểm tra chữ ký, chủ sở hữu và thời hạn của phiếu xuất."""
     try:
         encoded,sig=token.rsplit('.',1)
         if not hmac.compare_digest(sig,hmac.new(SECRET,encoded.encode(),hashlib.sha256).hexdigest()): raise ValueError()
@@ -29,11 +31,13 @@ def verify_result(token,owner):
 
 
 def persist_log(model,row):
+    """Lưu một kết quả dự đoán vào bảng log tương ứng với mô hình."""
     with db.engine.begin() as con: con.execute(insert(db.logs[model]).values(**row))
 
 
 @router.post('/api/models/{model}/predict', tags=['Dự đoán'], summary='Dự đoán một mẫu Iris')
 def predict(model:str,data:PredictionInput,user=Depends(session)):
+    """Dự đoán một mẫu Iris, tùy chọn lưu log và tạo token xuất kết quả."""
     estimator=require_model(model); values=[getattr(data,k) for k in FEATURES]
     start=time.perf_counter(); result=str(load_iris().target_names[int(estimator.predict([values])[0])])
     row=dict(id=str(uuid.uuid4()),owner=user['owner'],time=datetime.now(timezone.utc).isoformat(),user=user['name'],model=model,version=REPORTS[model]['version'],result=result,elapsed_ms=round((time.perf_counter()-start)*1000,3),**data.model_dump())
@@ -54,6 +58,7 @@ class BatchFileInput(BaseModel):
 
 
 def parse_batch_file(data):
+    """Đọc CSV, XLSX hoặc JSON và chuyển thành danh sách mẫu hợp lệ."""
     try:
         raw = base64.b64decode(data.content_base64, validate=True)
         if len(raw) > 5 * 1024 * 1024:
@@ -120,6 +125,7 @@ def parse_batch_file(data):
 
 @router.post('/api/models/{model}/predict-batch', tags=['Dự đoán'], summary='Dự đoán hàng loạt từ file')
 def predict_batch(model: str, data: BatchFileInput, user=Depends(session)):
+    """Dự đoán hàng loạt, lưu các kết quả và trả dữ liệu theo từng dòng."""
     estimator = require_model(model)
     parsed = parse_batch_file(data)
     values = [[getattr(item, f) for f in FEATURES] for _, item in parsed]
