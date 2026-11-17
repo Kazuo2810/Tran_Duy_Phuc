@@ -1,9 +1,11 @@
-"""Cấu hình và hàm dùng chung cho các router của hệ thống Iris.
+"""Thư viện cấu hình và các hàm dùng chung cho toàn bộ các router của Web Service Iris.
 
-Ghi chú: module này cung cấp cấu hình, model đã nạp, xác thực và helper dùng chung.
+Chức năng chính:
+- Nạp sẵn các mô hình SVM đã huấn luyện (.joblib) và báo cáo đánh giá (.json) vào RAM.
+- Cung cấp các hàm kiểm tra tính hợp lệ của mô hình và khoảng thời gian lọc dữ liệu.
+- Xác thực phiên đăng nhập người dùng bằng cách giải mã JWT do IdP cấp (middleware/dependency).
+- Truy vấn lịch sử dự đoán tổng hợp từ nhiều bảng SQL theo phân quyền chủ sở hữu.
 """
-# === app.py ===
-"""FastAPI phục vụ giao diện, mô hình, SQL và Excel. Chạy: python -m uvicorn app:app."""
 # === 1. THƯ VIỆN VÀ CẤU HÌNH ===
 import os, json, secrets, hashlib, hmac, base64, time, uuid, logging
 from pathlib import Path
@@ -28,16 +30,14 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill
 from sklearn.datasets import load_iris
-import database as db
-from train import MODEL_NAMES, FEATURES, LABELS, ROOT
-
-from visuals import decision, tree_image, margin_image
 
 import database as db
 from train import MODEL_NAMES, FEATURES, LABELS, ROOT
 from visuals import decision, tree_image, margin_image
 
 
+# --- 2. NẠP MÔ HÌNH VÀ BÁO CÁO ĐÁNH GIÁ VÀO BỘ NHỚ ---
+# Lưu ý: Nạp 'deployment.joblib' (mô hình đã huấn luyện trên toàn bộ 150 mẫu Iris)
 MODELS, REPORTS = {}, {}
 for key in MODEL_NAMES:
     folder = ROOT / 'models' / key
@@ -45,27 +45,45 @@ for key in MODEL_NAMES:
         MODELS[key] = joblib.load(folder / 'deployment.joblib')
         REPORTS[key] = json.loads((folder / 'report.json').read_text(encoding='utf-8'))
 
+# Múi giờ Việt Nam để quy đổi ngày lọc báo cáo chính xác theo giờ địa phương
 VN = ZoneInfo('Asia/Ho_Chi_Minh')
+# Khóa bí mật dùng để ký chữ ký xác thực khi xuất file (nếu cần)
 SECRET = os.getenv('EXPORT_SECRET', secrets.token_hex(32)).encode()
-def check_model(model):
-    """Kiểm tra mã mô hình có nằm trong danh sách được hỗ trợ."""
-    if model not in MODEL_NAMES: raise HTTPException(404,'Model không hợp lệ.')
+
+
+# --- 3. HÀM KIỂM TRA MÔ HÌNH & THỜI GIAN ---
+def check_model(model: str) -> str:
+    """Kiểm tra mã mô hình có nằm trong danh sách 5 cấu hình SVM hỗ trợ hay không."""
+    if model not in MODEL_NAMES:
+        raise HTTPException(404, 'Model không hợp lệ.')
     return model
-def require_model(model):
-    """Kiểm tra và trả mô hình đã được nạp để dự đoán."""
+
+
+def require_model(model: str):
+    """Đảm bảo mô hình hợp lệ và đã có file trọng số sẵn sàng trong bộ nhớ."""
     check_model(model)
-    if model not in MODELS: raise HTTPException(503,'Model chưa sẵn sàng. Hãy chạy train.py.')
+    if model not in MODELS:
+        raise HTTPException(503, 'Model chưa sẵn sàng. Hãy chạy train.py.')
     return MODELS[model]
-def date_bounds(start, end):
-    """Chuyển khoảng ngày theo múi giờ Việt Nam sang giới hạn UTC."""
+
+
+def date_bounds(start: date | None, end: date | None) -> tuple[str | None, str | None]:
+    """Chuyển đổi khoảng ngày (YYYY-MM-DD theo giờ VN) sang chuỗi mốc thời gian UTC ISO 8601."""
     if start and end and start > end:
         raise HTTPException(422, 'Ngày bắt đầu phải không sau ngày kết thúc.')
+    # Bắt đầu từ 00:00:00 ngày start
     lower = datetime.combine(start, daytime.min, VN).astimezone(timezone.utc).isoformat() if start else None
-    upper = datetime.combine(end+timedelta(days=1), daytime.min, VN).astimezone(timezone.utc).isoformat() if end else None
+    # Kết thúc trước 00:00:00 của ngày (end + 1) để lấy trọn vẹn cả ngày end
+    upper = datetime.combine(end + timedelta(days=1), daytime.min, VN).astimezone(timezone.utc).isoformat() if end else None
     return lower, upper
-def public_log(row):
-    """Loại bỏ thông tin nội bộ owner trước khi trả log cho client."""
+
+
+def public_log(row: dict) -> dict:
+    """Ẩn trường 'owner' (UUID nội bộ) trước khi trả dữ liệu lịch sử về cho frontend."""
     return {k: v for k, v in row.items() if k != 'owner'}
+
+
+# --- 4. CẤU HÌNH KẾT NỐI & XÁC THỰC VỚI DỊCH VỤ IDP ---
 JWT_SECRET = os.getenv("JWT_SECRET", "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET")
 JWT_ALGORITHM = "HS256"
 IDP_ISSUER = os.getenv("IDP_ISSUER", "http://127.0.0.1:8001").rstrip("/")
@@ -74,16 +92,27 @@ OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID", "iris-web-local")
 OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET", "")
 OAUTH_REQUIRED_SCOPE = os.getenv("OAUTH_REQUIRED_SCOPE", "iris:access")
 
-def idp_client_headers():
-    """Tạo header xác thực khi gọi trung tâm danh tính."""
+
+def idp_client_headers() -> dict:
+    """Tạo header định danh Web Service khi gọi API sang server IdP."""
     if not OAUTH_CLIENT_SECRET:
         raise HTTPException(503, "Web Service chưa được cấu hình OAUTH_CLIENT_SECRET.")
     return {"X-Client-ID": OAUTH_CLIENT_ID, "X-Client-Secret": OAUTH_CLIENT_SECRET}
-def public_user(row):
-    """Chọn các trường người dùng được phép công khai."""
+
+
+def public_user(row: dict) -> dict:
+    """Chuẩn hóa thông tin tài khoản an toàn để hiển thị ra ngoài."""
     return {**{key: row[key] for key in ('id', 'username', 'name')}, 'is_admin': bool(row.get('is_admin', False))}
-def session(x_session_token: str = Header(default='')):
-    """Giải mã, kiểm tra quyền và chuyển JWT thành thông tin phiên."""
+
+
+def session(x_session_token: str = Header(default='')) -> dict:
+    """Dependency xác thực người dùng qua header 'X-Session-Token' (chứa JWT).
+
+    Kiểm tra:
+    1. Chữ ký JWT và thời hạn sử dụng (exp).
+    2. Nguồn phát hành (iss) khớp với IDP_ISSUER và đối tượng nhận (aud) khớp với OAUTH_CLIENT_ID.
+    3. Token có chứa quyền 'iris:access' (OAUTH_REQUIRED_SCOPE) hay không.
+    """
     if not x_session_token:
         raise HTTPException(401, 'Vui lòng đăng nhập.')
     try:
@@ -109,28 +138,43 @@ def session(x_session_token: str = Header(default='')):
             'is_admin': payload['is_admin'],
             'client_id': payload['client_id'],
             'scope': scopes,
-            'owner': payload['sub']
+            'owner': payload['sub'],  # Dùng UUID người dùng làm khóa phân tách dữ liệu
         }
     except jwt.ExpiredSignatureError:
         raise HTTPException(401, 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.')
     except jwt.InvalidTokenError:
         raise HTTPException(401, 'Phiên đăng nhập không hợp lệ.')
-def require_admin(who=Depends(session)):
-    """Bảo đảm phiên hiện tại thuộc tài khoản quản trị."""
+
+
+def require_admin(who: dict = Depends(session)) -> dict:
+    """Dependency kiểm tra quyền Quản trị viên (Admin)."""
     if not who['is_admin']:
         raise HTTPException(403, 'Chỉ tài khoản quản trị được truy cập.')
     return who
-def query_rows(owner,model=None,user=None,start=None,end=None):
-    """Truy vấn, lọc và sắp xếp lịch sử dự đoán của một chủ tài khoản."""
-    if model: check_model(model)
+
+
+# --- 5. TRUY VẤN DỮ LIỆU LỊCH SỬ ---
+def query_rows(owner: str, model: str | None = None, user: str | None = None, start: date | None = None, end: date | None = None) -> list[dict]:
+    """Truy vấn lịch sử dự đoán của một người dùng (owner) từ 1 hoặc cả 5 bảng log SVM.
+
+    Kết quả được gộp lại và sắp xếp giảm dần theo thời gian dự đoán mới nhất.
+    """
+    if model:
+        check_model(model)
     lower, upper = date_bounds(start, end)
-    rows=[]
+    rows = []
     with db.engine.connect() as con:
         for key in ([model] if model else MODEL_NAMES):
-            table=db.logs[key]; q=select(table).where(table.c.owner==owner)
-            if user: q=q.where(table.c.user==user)
-            if lower: q=q.where(table.c.time>=lower)
-            if upper: q=q.where(table.c.time<upper)
+            table = db.logs[key]
+            q = select(table).where(table.c.owner == owner)
+            if user:
+                q = q.where(table.c.user == user)
+            if lower:
+                q = q.where(table.c.time >= lower)
+            if upper:
+                q = q.where(table.c.time < upper)
             rows.extend(dict(r) for r in con.execute(q).mappings())
-    rows.sort(key=lambda r:(r['time'],r['id']),reverse=True)
+
+    # Sắp xếp giảm dần theo thời gian (time), nếu trùng thời gian thì xếp theo ID
+    rows.sort(key=lambda r: (r['time'], r['id']), reverse=True)
     return [public_log(row) for row in rows]
