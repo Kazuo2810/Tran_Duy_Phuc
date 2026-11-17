@@ -1,6 +1,12 @@
-"""Huấn luyện, đánh giá độc lập và lưu 5 cấu hình SVM cho bộ dữ liệu Iris.
+"""Quy trình huấn luyện, đánh giá độc lập và đóng gói 5 cấu hình SVM cho bộ dữ liệu Iris.
 
-Ghi chú: chạy module này để tái huấn luyện model và cập nhật báo cáo trong models/.
+Quy trình khoa học dữ liệu được áp dụng:
+1. Chia dữ liệu theo tỷ lệ 80% Train (120 mẫu) / 20% Test (30 mẫu) có phân tầng (stratify).
+2. Mọi mô hình đều nằm trong Pipeline với StandardScaler để tránh rò rỉ dữ liệu (Data Leakage).
+3. Đánh giá bằng 5-Fold Stratified Cross-Validation trên tập Train (riêng SVM_OPT dùng Nested CV).
+4. Lưu song song 2 bản mô hình:
+   - evaluation.joblib: Mô hình fit trên 120 mẫu Train (dùng để báo cáo chỉ số khách quan).
+   - deployment.joblib: Mô hình fit lại trên toàn bộ 150 mẫu (dùng để phục vụ dự đoán thực tế).
 """
 import hashlib
 import json
@@ -30,7 +36,7 @@ from sklearn.svm import SVC
 
 ROOT = Path(__file__).resolve().parent
 
-# Giữ mã mô hình ngắn (tối đa 8 ký tự) để tương thích cột SQL hiện tại.
+# Từ điển ánh xạ mã mô hình (tối đa 8 ký tự để khớp cột SQL) sang tên hiển thị đầy đủ
 MODEL_NAMES = {
     "SVM": "SVM Linear",
     "SVM_RBF": "SVM RBF",
@@ -39,6 +45,7 @@ MODEL_NAMES = {
     "SVM_OPT": "SVM RBF tối ưu tham số (GridSearchCV)",
 }
 
+# Tên cột đặc trưng kỹ thuật và nhãn tiếng Việt tương ứng
 FEATURES = ["sepal_length", "sepal_width", "petal_length", "petal_width"]
 LABELS = [
     "Chiều dài đài hoa",
@@ -48,9 +55,12 @@ LABELS = [
 ]
 
 
-def estimators():
-    """Khai báo 4 cấu hình cố định và 1 cấu hình SVM được tìm tham số."""
+def estimators() -> dict:
+    """Khởi tạo 4 cấu hình SVM tham số cố định và 1 cấu hình tối ưu siêu tham số tự động."""
+    # Helper tạo Pipeline chuẩn hóa dữ liệu trước khi đưa vào bộ phân lớp SVC
     scaled_svc = lambda **kwargs: make_pipeline(StandardScaler(), SVC(**kwargs))
+
+    # Cấu hình tìm kiếm lưới (Grid Search) 4x4 = 16 tổ hợp tham số (C, gamma) cho kernel RBF
     tuned_svm = GridSearchCV(
         estimator=scaled_svc(),
         param_grid={
@@ -71,8 +81,8 @@ def estimators():
     }
 
 
-def _json_parameters(estimator, tuned_search=None):
-    """Chuyển tham số huấn luyện sang cấu trúc có thể ghi vào JSON."""
+def _json_parameters(estimator, tuned_search=None) -> dict:
+    """Trích xuất tham số cấu hình của mô hình sang định dạng từ điển thuần để lưu JSON."""
     if tuned_search is not None:
         return {
             "method": "GridSearchCV",
@@ -87,10 +97,12 @@ def _json_parameters(estimator, tuned_search=None):
     }
 
 
-def train_all(output=ROOT / "models"):
-    """Huấn luyện, đánh giá và lưu artifact cho toàn bộ mô hình Iris."""
+def train_all(output: Path = ROOT / "models"):
+    """Thực thi huấn luyện, kiểm thử và xuất file artifact cho cả 5 cấu hình SVM."""
     iris = load_iris()
     X, y = iris.data, iris.target
+
+    # Chia tập Train/Test theo chỉ số (indices) để lưu lại dấu vết mẫu dữ liệu trong báo cáo
     train_indices, test_indices = train_test_split(
         np.arange(len(y)),
         test_size=0.2,
@@ -99,6 +111,7 @@ def train_all(output=ROOT / "models"):
     )
     X_train, y_train = X[train_indices], y[train_indices]
     X_test, y_test = X[test_indices], y[test_indices]
+
     cv_splitter = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     output.mkdir(parents=True, exist_ok=True)
 
@@ -108,15 +121,20 @@ def train_all(output=ROOT / "models"):
         tuned_search = None
 
         if key == "SVM_OPT":
+            # 1. Tìm tham số tốt nhất trên tập Train (120 mẫu) để đánh giá trên Test (30 mẫu)
             tuned_search = clone(estimator).fit(X_train, y_train)
             evaluation = tuned_search.best_estimator_
-            # Nested CV: mỗi fold tự tìm tham số chỉ trên phần train của fold đó.
+
+            # 2. Nested Cross-Validation: mỗi fold tự tìm tham số độc lập để tránh lạc quan quá mức
             cv_scores = cross_val_score(
                 clone(estimator), X_train, y_train,
                 cv=cv_splitter, scoring="accuracy", n_jobs=1,
             )
+
+            # 3. Huấn luyện lại trên toàn bộ 150 mẫu để triển khai thực tế
             deployed_search = clone(estimator).fit(X, y)
             deployed = deployed_search.best_estimator_
+
             parameters = _json_parameters(estimator, tuned_search)
             parameters["deployment_best_params"] = deployed_search.best_params_
         else:
@@ -128,17 +146,20 @@ def train_all(output=ROOT / "models"):
             deployed = clone(estimator).fit(X, y)
             parameters = _json_parameters(estimator)
 
+        # Đánh giá hiệu năng trên tập Test độc lập (30 mẫu)
         predictions = evaluation.predict(X_test)
         precision, recall, f1, _ = precision_recall_fscore_support(
             y_test, predictions, average="macro", zero_division=0
         )
 
+        # Lưu file mô hình và tạo mã băm phiên bản (12 ký tự đầu của SHA-256)
         joblib.dump(evaluation, folder / "evaluation.joblib")
         joblib.dump(deployed, folder / "deployment.joblib")
         version = hashlib.sha256(
             (folder / "deployment.joblib").read_bytes()
         ).hexdigest()[:12]
 
+        # Tổng hợp toàn bộ siêu dữ liệu và chỉ số đánh giá vào report.json
         report = {
             "model": key,
             "name": MODEL_NAMES[key],
