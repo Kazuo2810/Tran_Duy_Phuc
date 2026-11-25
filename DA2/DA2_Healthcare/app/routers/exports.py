@@ -1,5 +1,6 @@
 from io import BytesIO
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import or_
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from openpyxl import Workbook
@@ -11,7 +12,13 @@ from ..audit import record
 router = APIRouter(prefix="/api", tags=["Xuất báo cáo"])
 
 @router.get("/export")
-def export_history(user=Depends(current_user)):
+def export_history(
+    label: str = Query("", max_length=30),
+    patient: str = Query("", max_length=100),
+    start_date: str = Query("", max_length=10),
+    end_date: str = Query("", max_length=10),
+    user=Depends(current_user)
+):
     q = select(prediction_history, patient_profiles.c.patient_code, patient_profiles.c.full_name.label("patient_name"))
     q = q.join(patient_profiles, patient_profiles.c.id == prediction_history.c.patient_id)
     if user["role"] == "patient":
@@ -22,6 +29,16 @@ def export_history(user=Depends(current_user)):
         q = q.join(staff_patient_assignments, staff_patient_assignments.c.patient_id == patient_profiles.c.id).where(
             staff_patient_assignments.c.staff_id == staff_id,
             staff_patient_assignments.c.status == "active")
+    if label in ("malignant", "benign"):
+        q = q.where(prediction_history.c.predicted_label == label)
+    if patient.strip():
+        term = "%" + patient.strip() + "%"
+        q = q.where(or_(patient_profiles.c.patient_code.ilike(term),
+                        patient_profiles.c.full_name.ilike(term)))
+    if start_date:
+        q = q.where(prediction_history.c.created_at >= start_date)
+    if end_date:
+        q = q.where(prediction_history.c.created_at < end_date + " 23:59:59.999999")
     with engine.connect() as con:
         rows = con.execute(q.order_by(prediction_history.c.created_at.desc())).mappings().all()
     wb = Workbook(); ws = wb.active; ws.title = "Lịch sử WDBC"
