@@ -112,3 +112,5 @@ body.dark .features .feature-group{background:var(--iris-surface);border-color:v
 .audit-filters{margin:10px 0 4px}.audit-filters input,.audit-filters select{min-width:150px}#audit-detail{margin-top:16px;color:var(--iris-text);font-size:12px}#audit-rows button{padding:7px 12px}
 
 #audit-rows input[type=checkbox],#audit-select-all{width:16px;height:16px;accent-color:#06b6d4;cursor:pointer}#delete-selected-audit{margin-left:auto}
+
+.model-choice-wrap{width:100%;min-width:280px}.model-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:8px}.model-choice{display:flex;align-items:center;gap:9px;padding:11px 13px;border:1px solid var(--iris-border);border-radius:10px;background:var(--iris-surface);cursor:pointer}.model-choice input{width:17px;height:17px;accent-color:#06b6d4}.model-choice span{font-size:13px;font-weight:650}.model-choice:hover{border-color:var(--iris-primary);background:var(--iris-soft)}#prediction-result table{min-width:600px}@media(max-width:600px){.model-choice-grid{grid-template-columns:1fr}}
