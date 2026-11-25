@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: healthcare-wdbc-app
+    runtime: python
+    plan: free
+    rootDir: DA2_Healthcare
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: DB_SCHEMA
+        value: healthcare
+      - key: AUTH_SERVICE_URL
+        value: https://iris-auth-service.onrender.com
+      - key: IDP_ISSUER
+        sync: false
+      - key: OAUTH_CLIENT_ID
+        value: healthcare-web
+      - key: OAUTH_REQUIRED_SCOPE
+        value: healthcare:access
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: OAUTH_CLIENT_SECRET
+        sync: false

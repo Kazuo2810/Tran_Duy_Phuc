@@ -1,0 +1,107 @@
+{
+  "model_name": "breast-cancer-svm-rbf",
+  "model_version": "1.0.0",
+  "created_at": "2026-10-10T18:09:32.562529+00:00",
+  "feature_names": [
+    "mean radius",
+    "mean texture",
+    "mean perimeter",
+    "mean area",
+    "mean smoothness",
+    "mean compactness",
+    "mean concavity",
+    "mean concave points",
+    "mean symmetry",
+    "mean fractal dimension",
+    "radius error",
+    "texture error",
+    "perimeter error",
+    "area error",
+    "smoothness error",
+    "compactness error",
+    "concavity error",
+    "concave points error",
+    "symmetry error",
+    "fractal dimension error",
+    "worst radius",
+    "worst texture",
+    "worst perimeter",
+    "worst area",
+    "worst smoothness",
+    "worst compactness",
+    "worst concavity",
+    "worst concave points",
+    "worst symmetry",
+    "worst fractal dimension"
+  ],
+  "class_mapping": {
+    "0": "malignant",
+    "1": "benign"
+  },
+  "best_params": {
+    "svc__C": 10,
+    "svc__gamma": 0.01
+  },
+  "sklearn_version": "1.8.0",
+  "python_version": "3.12.14",
+  "random_state": 42,
+  "dataset": "sklearn.datasets.load_breast_cancer (WDBC)",
+  "train_size": 455,
+  "test_size": 114,
+  "selection_metric": "recall_macro",
+  "cv_folds": 5,
+  "model_sha256": "fe59aec2be4b6de1e2fd9a294d62412984aeb2e4b48c549b818338f6f1f1c0d2",
+  "training_script_sha256": "a40d3533973bec0d7b8a85eee7b2c621589cd1b3a32493ac4641e5708587e385",
+  "warning": "Chỉ phục vụ học tập; kết quả không phải chẩn đoán y tế và không thay thế bác sĩ.",
+  "input_domain": "Số hữu hạn không âm; kiểm tra kỹ thuật, không xác nhận miền sinh học.",
+  "metrics": {
+    "accuracy": 0.9736842105263158,
+    "sensitivity_malignant": 0.9761904761904762,
+    "specificity_benign": 0.9722222222222222,
+    "precision_malignant": 0.9534883720930233,
+    "f1_malignant": 0.9647058823529412,
+    "roc_auc_malignant": 0.9966931216931216,
+    "average_precision_malignant": 0.9952314259036948,
+    "false_negative_malignant": 1,
+    "confusion_matrix_labels_0_1": [
+      [
+        41,
+        1
+      ],
+      [
+        2,
+        70
+      ]
+    ],
+    "train_recall_macro": 0.9864809081527348,
+    "cv_recall_macro": 0.9753353973168215,
+    "test_recall_macro": 0.9742063492063492,
+    "classification_report": {
+      "malignant": {
+        "precision": 0.9534883720930233,
+        "recall": 0.9761904761904762,
+        "f1-score": 0.9647058823529412,
+        "support": 42.0
+      },
+      "benign": {
+        "precision": 0.9859154929577465,
+        "recall": 0.9722222222222222,
+        "f1-score": 0.9790209790209791,
+        "support": 72.0
+      },
+      "accuracy": 0.9736842105263158,
+      "macro avg": {
+        "precision": 0.9697019325253848,
+        "recall": 0.9742063492063492,
+        "f1-score": 0.9718634306869601,
+        "support": 114.0
+      },
+      "weighted avg": {
+        "precision": 0.9739686589549538,
+        "recall": 0.9736842105263158,
+        "f1-score": 0.9737469960380177,
+        "support": 114.0
+      }
+    }
+  }
+}
