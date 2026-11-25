@@ -82,7 +82,7 @@ def main():
         deployment_model = Pipeline([
             ("scaler", StandardScaler()),
             ("svc", SVC(kernel=cfg["kernel"], probability=True,
-                        class_weight="balanced", random_state=42, **best_params)
+                        class_weight="balanced", random_state=42, **best_params))
         ]).fit(X, y)
         joblib.dump(deployment_model, deployment_path)
         report = {
