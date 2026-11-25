@@ -104,3 +104,7 @@ body.dark .features .feature-group{background:var(--iris-surface);border-color:v
 
 /* Bộ chọn 4 biến thể SVM */
 .model-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:14px 0}.model-toolbar>div{flex:1;min-width:220px}.model-comparison{overflow:auto}.model-comparison table{min-width:760px}.model-comparison tr.selected{background:#ecfeff}body.dark .model-comparison tr.selected{background:#183a43}
+
+/* Quick WDBC example controls */
+#example-malignant,#example-benign,#random-features{border-color:var(--accent,#168b91)}
+#random-features{font-weight:700}
