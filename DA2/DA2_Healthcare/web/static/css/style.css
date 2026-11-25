@@ -108,3 +108,5 @@ body.dark .features .feature-group{background:var(--iris-surface);border-color:v
 /* Quick WDBC example controls */
 #example-malignant,#example-benign,#random-features{border-color:var(--accent,#168b91)}
 #random-features{font-weight:700}
+
+.audit-filters{margin:10px 0 4px}.audit-filters input,.audit-filters select{min-width:150px}#audit-detail{margin-top:16px;color:var(--iris-text);font-size:12px}#audit-rows button{padding:7px 12px}
