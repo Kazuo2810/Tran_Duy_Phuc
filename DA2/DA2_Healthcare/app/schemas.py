@@ -15,6 +15,7 @@ class LoginInput(BaseModel):
 
 class PredictionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    model_key: str | None = Field(default=None, pattern=r"^SVM_(LINEAR|RBF|POLY|SIGMOID)$")
     features: dict[str, StrictFloat | StrictInt] = Field(..., description="Đúng 30 đặc trưng từ /metadata")
 
 class PatientCreate(BaseModel):
