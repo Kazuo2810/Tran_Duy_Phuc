@@ -154,12 +154,12 @@ Bộ test bao gồm health/model, tạo tài khoản qua mock IdP, bootstrap Adm
 
 ## 11. Triển khai Render
 
-Dự án 2 được deploy thành Web Service riêng từ cùng repository GitHub nhưng dùng branch riêng `project2-healthcare` và root directory `DA2/DA2_Healthcare` (sau khi branch được tạo). Không đổi branch hoặc rootDir của hai dịch vụ Iris hiện tại.
+Dự án 2 được deploy thành Web Service riêng từ repository GitHub, branch `organize-da1`, root directory `DA2/DA2_Healthcare`. Không đổi branch hoặc rootDir của hai dịch vụ Iris hiện tại.
 
-- Build: `pip install -r requirements.txt`
+- Build: `pip install -r requirements.txt && python scripts/train.py` (huấn luyện và tạo đủ 4 artifact SVM trước khi khởi chạy).
 - Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - Health check: `/health`
-- Blueprint: chọn file `DA2_Healthcare/render.yaml`.
+- Blueprint: chọn file `DA2/DA2_Healthcare/render.yaml`.
 
 Render database đang dùng chung trong tài khoản hiện có là gói Free và bảng điều khiển hiển thị ngày hết hạn **02/12/2026**. Cần kiểm tra gia hạn/nâng cấp hoặc sao lưu và chuyển dữ liệu trước ngày này; không nên coi dữ liệu trên DB Free là lưu trữ lâu dài.
 
