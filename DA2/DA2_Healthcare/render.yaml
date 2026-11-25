@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     rootDir: DA2_Healthcare
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && python scripts/train.py
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     autoDeploy: true
