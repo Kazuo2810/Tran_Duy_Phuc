@@ -83,3 +83,38 @@ def batch_predict_csv(payload: dict, user=Depends(require_roles("admin", "staff"
             results.append({"row": index, "error": str(getattr(exc, "detail", exc))})
     return {"count": len(results), "items": results, "persisted": False,
             "warning": "Dữ liệu CSV chỉ được xử lý để minh họa; không lưu vào hồ sơ."}
+
+@router.get("/analytics/decision-slice")
+def decision_slice(
+    x_feature: str = Query("mean radius", max_length=80),
+    y_feature: str = Query("mean texture", max_length=80),
+    user=Depends(current_user)
+):
+    """Two-feature decision slice; all other features are fixed at dataset medians."""
+    import numpy as np
+    import pandas as pd
+    from sklearn.datasets import load_breast_cancer
+    from ..main import app
+    names = app.state.metadata["feature_names"]
+    if x_feature not in names or y_feature not in names or x_feature == y_feature:
+        raise HTTPException(422, "Hãy chọn hai đặc trưng khác nhau trong danh sách WDBC.")
+    data = load_breast_cancer(as_frame=True).data
+    x_min, x_max = float(data[x_feature].quantile(.02)), float(data[x_feature].quantile(.98))
+    y_min, y_max = float(data[y_feature].quantile(.02)), float(data[y_feature].quantile(.98))
+    gx, gy = np.linspace(x_min, x_max, 35), np.linspace(y_min, y_max, 35)
+    xx, yy = np.meshgrid(gx, gy)
+    grid = pd.DataFrame(np.tile(data.median().to_numpy(), (xx.size, 1)), columns=names)
+    grid[x_feature] = xx.ravel()
+    grid[y_feature] = yy.ravel()
+    decision = app.state.model.decision_function(grid).reshape(xx.shape)
+    points = data[[x_feature, y_feature]].to_numpy()
+    labels = load_breast_cancer().target.astype(int)
+    return {
+        "x_feature": x_feature, "y_feature": y_feature,
+        "x": gx.tolist(), "y": gy.tolist(),
+        "decision": decision.tolist(),
+        "points": [{"x": float(a), "y": float(b), "label": int(label)}
+                   for (a, b), label in zip(points, labels)],
+        "fixed_features": "Các đặc trưng còn lại được cố định tại trung vị WDBC.",
+        "warning": "Đây là lát cắt 2D của không gian 30 chiều, không phải biên quyết định đầy đủ."
+    }
