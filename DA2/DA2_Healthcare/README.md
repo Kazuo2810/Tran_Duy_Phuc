@@ -2,7 +2,7 @@
 
 **Sinh viên:** Trần Duy Phúc – 24CKDL  
 **Học phần:** Học máy nâng cao  
-**Mô hình:** Breast Cancer Wisconsin Diagnostic (WDBC), StandardScaler + SVM RBF  
+**Mô hình:** Breast Cancer Wisconsin Diagnostic (WDBC), so sánh 4 kernel SVM: Linear, RBF, Polynomial và Sigmoid  
 **Phạm vi:** Chỉ phục vụ học tập và trình diễn; không phải công cụ chẩn đoán y tế.
 
 ## 1. Mục tiêu phiên bản nâng cấp
@@ -43,11 +43,14 @@ DA2_Healthcare/
 │       ├── models.py           # Metadata và metrics
 │       ├── dashboard.py        # Thống kê tổng quan
 │       └── exports.py          # Xuất Excel
-├── artifacts/                  # Pipeline SVM và metadata từ DA2 gốc
+├── artifacts/                  # 4 pipeline SVM, metadata và phiên bản mô hình
+│   └── models/                  # Mỗi kernel có evaluation.joblib, deployment.joblib, metadata.json
 ├── scripts/train.py            # Mã huấn luyện gốc, không huấn luyện lúc API start
 ├── reports/                    # Kết quả thực nghiệm gốc
 ├── tests/                      # Kiểm thử model, JWT và phân quyền
-├── web/index.html              # Giao diện Healthcare
+├── web/index.html              # Khung giao diện
+│   └── static/css/style.css     # Giao diện CSS tách riêng
+│   └── static/js/app.js         # Tương tác và gọi API tách riêng
 ├── render.yaml                 # Blueprint riêng của Dự án 2
 ├── requirements.txt
 └── .env.example
@@ -116,6 +119,7 @@ Cần Python 3.12 và PostgreSQL hoặc SQLite local.
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+python scripts/train.py
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -129,7 +133,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 - `GET /api/history`, `GET /api/history/{id}`
 - `GET /api/admin/users`, `PATCH /api/admin/users/{id}/role`
 - `GET /api/admin/staff`, `POST /api/admin/assignments`, `DELETE /api/admin/assignments/{id}`
-- `GET /api/models`, `GET /api/dashboard/summary`, `GET /api/export`
+- `GET /api/models`, `GET /api/models/{model_key}`, `GET /api/dashboard/summary`, `GET /api/export`
 - `GET /health`, `GET /metadata`, `GET /docs`
 
 ## 9. Phân quyền
@@ -150,7 +154,7 @@ Bộ test bao gồm health/model, tạo tài khoản qua mock IdP, bootstrap Adm
 
 ## 11. Triển khai Render
 
-Dự án 2 được deploy thành Web Service riêng từ cùng repository GitHub nhưng dùng branch riêng `project2-healthcare` và root directory `DA2_Healthcare` (sau khi branch được tạo). Không đổi branch hoặc rootDir của hai dịch vụ Iris hiện tại.
+Dự án 2 được deploy thành Web Service riêng từ cùng repository GitHub nhưng dùng branch riêng `project2-healthcare` và root directory `DA2/DA2_Healthcare` (sau khi branch được tạo). Không đổi branch hoặc rootDir của hai dịch vụ Iris hiện tại.
 
 - Build: `pip install -r requirements.txt`
 - Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
@@ -161,7 +165,9 @@ Render database đang dùng chung trong tài khoản hiện có là gói Free v�
 
 ## 12. Phạm vi và giới hạn
 
-- Giữ nguyên mô hình SVM RBF, artifact, metadata và số liệu đánh giá từ bản DA2 gốc.
+- Huấn luyện và so sánh bốn kernel SVM trên cùng cách chia train/test phân tầng; GridSearchCV tối ưu `recall_macro` chỉ trên tập train. Báo cáo dùng tập test độc lập; artifact triển khai được fit lại trên toàn bộ WDBC.
+- Mặc định dự đoán là SVM RBF; người dùng có thể chọn Linear, Polynomial hoặc Sigmoid ở trang dự đoán và dự đoán hàng loạt.
+- Giao diện được tách thành `web/index.html`, `web/static/css/style.css` và `web/static/js/app.js`.
 - Không chuyển ứng dụng thành công cụ chẩn đoán; kết quả chỉ để minh họa học máy.
 - Tài khoản SQLite cũ không được tự động chuyển mật khẩu sang IdP; người dùng cần đăng ký lại hoặc được cấp lại tài khoản. Hồ sơ cũ chỉ nên migrate sau khi xác minh dữ liệu và quyền sở hữu.
 - Cần cấu hình OAuth client và các biến môi trường trên Render trước khi kiểm thử đăng nhập trực tuyến.
