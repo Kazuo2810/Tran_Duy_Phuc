@@ -1,0 +1,31 @@
+# ==============================================================================
+# CẤU HÌNH BỎ QUA FILE CHO GIT (.gitignore)
+# Ngăn chặn việc đẩy các file nhạy cảm, file tạm và dữ liệu cục bộ lên kho mã nguồn
+# ==============================================================================
+
+# --- Biến môi trường & Khóa bảo mật ---
+.env                  # File chứa mật khẩu, JWT_SECRET, chuỗi kết nối DB cục bộ
+.env.*                # Các biến thể môi trường (.env.local, .env.production, ...)
+!.env.example         # Giữ lại file mẫu cấu hình để hướng dẫn người dùng khác
+*.pem                 # Chứng chỉ/khóa riêng tư SSL/TLS
+*.key                 # File khóa bí mật
+
+# --- File biên dịch & Bộ nhớ đệm Python ---
+__pycache__/          # Thư mục chứa bytecode Python đã biên dịch
+*.py[cod]             # Các file .pyc, .pyo, .pyd
+
+# --- Môi trường ảo (Virtual Environments) & Kiểm thử ---
+.venv/                # Thư mục môi trường ảo chuẩn
+venv/                 # Thư mục môi trường ảo dự phòng
+.pytest_cache/        # Bộ nhớ đệm của thư viện kiểm thử pytest
+
+# --- Cơ sở dữ liệu cục bộ (SQLite) ---
+*.db                  # File database SQLite (ví dụ: iris.db, users.db)
+*.sqlite              # File database định dạng .sqlite
+*.sqlite3             # File database định dạng .sqlite3
+
+# --- File hệ thống & Cấu hình trình soạn thảo (IDE) ---
+.DS_Store             # File metadata tự động tạo trên macOS
+Thumbs.db             # File cache hình thu nhỏ trên Windows
+.vscode/              # Cấu hình riêng của Visual Studio Code
+.idea/                # Cấu hình riêng của PyCharm / JetBrains IDE
