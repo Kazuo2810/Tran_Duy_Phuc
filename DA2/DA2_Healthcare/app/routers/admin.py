@@ -118,6 +118,19 @@ def list_audit_logs(limit: int = 100, user=Depends(require_admin)):
         rows = con.execute(select(audit_logs).order_by(audit_logs.c.created_at.desc()).limit(limit)).mappings().all()
     return {"items": [dict(r) for r in rows]}
 
+@router.delete("/audit-logs")
+def delete_audit_logs(payload: dict, user=Depends(require_admin)):
+    ids = list(dict.fromkeys(str(x) for x in (payload.get("ids") or []) if str(x).strip()))
+    if not ids:
+        raise HTTPException(422, "Hãy chọn ít nhất một mục lịch sử cần xóa.")
+    if len(ids) > 100:
+        raise HTTPException(422, "Mỗi lần chỉ được xóa tối đa 100 mục.")
+    with engine.begin() as con:
+        result = con.execute(audit_logs.delete().where(audit_logs.c.id.in_(ids)))
+        deleted_count = result.rowcount or 0
+    record(user["id"], "audit_logs_deleted", "audit_logs", "", {"deleted_count": deleted_count})
+    return {"message": f"Đã xóa {deleted_count} mục lịch sử.", "deleted_count": deleted_count}
+
 @router.post("/patients/{patient_id}/link-account")
 def link_patient_account(patient_id: str, payload: dict, user=Depends(require_admin)):
     target_user_id = str(payload.get("user_id", "")).strip()
