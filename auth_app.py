@@ -209,25 +209,47 @@ def setup_idp():
         except Exception as exc:
             raise RuntimeError(f"Cấu hình OAUTH_CLIENTS_JSON không hợp lệ: {exc}") from exc
 
-    # Tạo hoặc cập nhật quyền cho tài khoản Admin mặc định nếu có ADMIN_PASSWORD
-    admin_user = os.getenv("ADMIN_USERNAME", "admin").strip().lower()
-    admin_pass = os.getenv("ADMIN_PASSWORD", "").strip()
-    if admin_pass:
-        with engine.connect() as con:
-            row = con.execute(select(users).where(users.c.username == admin_user)).mappings().first()
-        if not row:
-            with engine.begin() as con:
-                con.execute(insert(users).values(
-                    id=str(uuid.uuid4()),
-                    username=admin_user,
-                    name=os.getenv("ADMIN_DISPLAY_NAME", "Quản trị viên"),
+    
+# Tạo hoặc cập nhật quyền cho tài khoản Admin mặc định
+admin_user = os.getenv("ADMIN_USERNAME", "admin").strip().lower()
+admin_pass = os.getenv("ADMIN_PASSWORD", "").strip()
+reset_admin_password = os.getenv("RESET_ADMIN_PASSWORD", "false").lower() == "true"
+
+if admin_pass:
+    with engine.connect() as con:
+        row = con.execute(
+            select(users).where(users.c.username == admin_user)
+        ).mappings().first()
+
+    if not row:
+        with engine.begin() as con:
+            con.execute(insert(users).values(
+                id=str(uuid.uuid4()),
+                username=admin_user,
+                name=os.getenv("ADMIN_DISPLAY_NAME", "Quản trị viên"),
+                password_hash=password_hasher.hash(admin_pass),
+                created_at=datetime.now(timezone.utc).isoformat(),
+                is_admin=True,
+            ))
+
+    elif reset_admin_password:
+        with engine.begin() as con:
+            con.execute(
+                update(users)
+                .where(users.c.username == admin_user)
+                .values(
                     password_hash=password_hasher.hash(admin_pass),
-                    created_at=datetime.now(timezone.utc).isoformat(),
-                    is_admin=True,
-                ))
-        elif not row["is_admin"]:
-            with engine.begin() as con:
-                con.execute(update(users).where(users.c.username == admin_user).values(is_admin=True))
+                    is_admin=True
+                )
+            )
+
+    elif not row["is_admin"]:
+        with engine.begin() as con:
+            con.execute(
+                update(users)
+                .where(users.c.username == admin_user)
+                .values(is_admin=True)
+            )
 
 
 @app.get("/health")
