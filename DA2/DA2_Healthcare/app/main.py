@@ -1,7 +1,7 @@
 """Healthcare/WDBC app: Shared IdP, isolated healthcare schema, role-based patient access."""
 from contextlib import asynccontextmanager
 from pathlib import Path
-import hashlib, json
+import hashlib, json, subprocess, sys
 import joblib
 import sklearn
 from fastapi import FastAPI
@@ -15,7 +15,18 @@ ROOT = Path(__file__).resolve().parents[1]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    meta = json.loads((ROOT / "artifacts/metadata.json").read_text(encoding="utf-8"))
+    metadata_path = ROOT / "artifacts/metadata.json"
+    try:
+        current_meta = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        current_meta = {}
+    required = [
+        ROOT / "artifacts" / "models" / key / "deployment.joblib"
+        for key in ("SVM_LINEAR", "SVM_RBF", "SVM_POLY", "SVM_SIGMOID")
+    ]
+    if len(current_meta.get("models", {})) != 4 or not all(path.is_file() for path in required):
+        subprocess.run([sys.executable, str(ROOT / "scripts/train.py")], cwd=ROOT, check=True)
+    meta = json.loads(metadata_path.read_text(encoding="utf-8"))
     if meta["sklearn_version"] != sklearn.__version__:
         raise RuntimeError("Phiên bản scikit-learn khác môi trường tạo artifact.")
     loaded, metadata_by_key = {}, {}
