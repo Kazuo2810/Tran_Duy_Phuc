@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from datetime import date, datetime, time, timedelta
 from sqlalchemy import or_, func
 from sqlalchemy import select
 from ..database import engine, prediction_history, patient_profiles, staff_profiles, staff_patient_assignments
@@ -41,10 +42,13 @@ def list_history(
         term = "%" + patient.strip() + "%"
         q = q.where(or_(patient_profiles.c.patient_code.ilike(term),
                         patient_profiles.c.full_name.ilike(term)))
-    if start_date:
-        q = q.where(prediction_history.c.created_at >= start_date)
-    if end_date:
-        q = q.where(prediction_history.c.created_at < end_date + " 23:59:59.999999")
+    try:
+        if start_date:
+            q = q.where(prediction_history.c.created_at >= datetime.combine(date.fromisoformat(start_date), time.min))
+        if end_date:
+            q = q.where(prediction_history.c.created_at < datetime.combine(date.fromisoformat(end_date) + timedelta(days=1), time.min))
+    except ValueError:
+        raise HTTPException(422, "Ngày lọc phải theo định dạng YYYY-MM-DD.")
     with engine.connect() as con:
         total = con.execute(select(func.count()).select_from(q.order_by(None).subquery())).scalar_one()
         rows = con.execute(q.limit(limit).offset(offset)).mappings().all()
