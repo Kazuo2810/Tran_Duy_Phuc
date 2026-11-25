@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import or_, func
 from sqlalchemy import select
 from ..database import engine, prediction_history, patient_profiles, staff_profiles, staff_patient_assignments
 from ..security import current_user, can_access_patient
@@ -24,11 +25,44 @@ def _history_query(user):
 
 
 @router.get("")
-def list_history(limit: int = 100, user=Depends(current_user)):
-    limit = max(1, min(limit, 500))
+def list_history(
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    label: str = Query("", max_length=30),
+    patient: str = Query("", max_length=100),
+    start_date: str = Query("", max_length=10),
+    end_date: str = Query("", max_length=10),
+    user=Depends(current_user)
+):
+    q = _history_query(user)
+    if label in ("malignant", "benign"):
+        q = q.where(prediction_history.c.predicted_label == label)
+    if patient.strip():
+        term = "%" + patient.strip() + "%"
+        q = q.where(or_(patient_profiles.c.patient_code.ilike(term),
+                        patient_profiles.c.full_name.ilike(term)))
+    if start_date:
+        q = q.where(prediction_history.c.created_at >= start_date)
+    if end_date:
+        q = q.where(prediction_history.c.created_at < end_date + " 23:59:59.999999")
     with engine.connect() as con:
-        rows = con.execute(_history_query(user).limit(limit)).mappings().all()
-    return {"items": [dict(r) for r in rows], "count": len(rows)}
+        total = con.execute(select(func.count()).select_from(q.order_by(None).subquery())).scalar_one()
+        rows = con.execute(q.limit(limit).offset(offset)).mappings().all()
+    return {"items": [dict(r) for r in rows], "count": len(rows),
+            "total": total, "limit": limit, "offset": offset}
+
+
+@router.post("/bulk-delete")
+def bulk_delete(payload: dict, user=Depends(current_user)):
+    if user["role"] != "admin":
+        raise HTTPException(403, "Chỉ Admin được xóa lịch sử dự đoán.")
+    ids = payload.get("ids")
+    if not isinstance(ids, list) or not ids or len(ids) > 200 or not all(isinstance(x, str) for x in ids):
+        raise HTTPException(422, "Chọn từ 1 đến 200 mã lịch sử hợp lệ.")
+    with engine.begin() as con:
+        result = con.execute(prediction_history.delete().where(prediction_history.c.id.in_(ids)))
+    record(user["id"], "prediction_bulk_deleted", "prediction_history", "", {"requested": len(ids), "deleted": result.rowcount})
+    return {"deleted": result.rowcount}
 
 
 @router.get("/{record_id}")
