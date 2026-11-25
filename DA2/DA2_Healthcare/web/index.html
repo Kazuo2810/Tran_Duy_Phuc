@@ -26,6 +26,7 @@ body.dark{background:#101b22;color:#e1edf0}body.dark aside,body.dark .card,body.
 <div class="grid" id="metric-cards"></div>
 <div class="card"><h2>Ma trận nhầm lẫn</h2><div id="confusion-view"></div></div>
 <div class="card"><h2>Thống kê bộ dữ liệu</h2><div id="dataset-summary" class="grid two"></div><div class="table-wrap"><table><thead><tr><th>Đặc trưng</th><th>Trung bình</th><th>Độ lệch chuẩn</th><th>Nhỏ nhất</th><th>Trung vị</th><th>Lớn nhất</th></tr></thead><tbody id="feature-stat-rows"></tbody></table></div></div>
+<div class="card"><h2>Lát cắt biên quyết định SVM</h2><p class="muted">Chọn hai đặc trưng; 28 đặc trưng còn lại được cố định tại trung vị WDBC.</p><div class="form-grid"><div><label>Trục X</label><select id="slice-x"></select></div><div><label>Trục Y</label><select id="slice-y"></select></div><div style="display:flex;align-items:end"><button id="draw-slice">Vẽ biểu đồ</button></div></div><canvas id="decision-canvas" width="900" height="480" style="width:100%;max-height:480px;margin-top:14px"></canvas><p id="slice-warning" class="muted"></p></div>
 <div class="card"><h2>Thông tin mô hình</h2><div id="model-info"></div></div>
 </section>
 <section id="page-batch" class="hidden">
@@ -45,7 +46,7 @@ async function api(url,method='GET',body){const headers={'Content-Type':'applica
 function showAuth(){currentUser=null;csrf='';$('auth-screen').classList.remove('hidden');$('app-screen').classList.add('hidden');$('account-badge').classList.add('hidden')}
 function showApp(user){currentUser=user;$('auth-screen').classList.add('hidden');$('app-screen').classList.remove('hidden');$('account-badge').textContent=user.username+' · '+user.role;$('account-badge').classList.remove('hidden');$('role-badge').textContent='Vai trò: '+user.role;$('nav-staff').classList.toggle('hidden',user.role!=='admin');$('nav-admin').classList.toggle('hidden',!(user.role==='admin'||user.idp_is_admin));$('add-patient').classList.toggle('hidden',!['admin','staff'].includes(user.role));$('my-username').textContent=user.username;$('my-name').textContent=user.name;$('my-role').textContent=user.role;$('my-id').textContent=user.id;}
 async function loadDashboard(){const d=await api('/api/dashboard/summary');$('stat-patients').textContent=d.patients;$('stat-staff').textContent=d.staff;$('stat-predictions').textContent=d.predictions;$('stat-users').textContent=d.users}
-function navigate(page){document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));['dashboard','patients','predict','history','analytics','batch','staff','admin','profile'].forEach(p=>$('page-'+p).classList.toggle('hidden',p!==page));if(page==='analytics')loadAnalytics().catch(e=>notify(e.message));if(page==='dashboard')loadDashboard().catch(e=>notify(e.message));if(page==='patients')loadPatients().catch(e=>notify(e.message));if(page==='history')loadHistory().catch(e=>notify(e.message));if(page==='staff')loadStaff().catch(e=>notify(e.message));if(page==='admin')loadAdmin().catch(e=>notify(e.message));if(page==='predict')loadPredictionPage().catch(e=>notify(e.message));}
+function navigate(page){document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));['dashboard','patients','predict','history','analytics','batch','staff','admin','profile'].forEach(p=>$('page-'+p).classList.toggle('hidden',p!==page));if(page==='analytics')loadAnalytics().then(drawDecisionSlice).catch(e=>notify(e.message));if(page==='dashboard')loadDashboard().catch(e=>notify(e.message));if(page==='patients')loadPatients().catch(e=>notify(e.message));if(page==='history')loadHistory().catch(e=>notify(e.message));if(page==='staff')loadStaff().catch(e=>notify(e.message));if(page==='admin')loadAdmin().catch(e=>notify(e.message));if(page==='predict')loadPredictionPage().catch(e=>notify(e.message));}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));
 $('auth-toggle').onclick=()=>{registerMode=!registerMode;$('name-field').classList.toggle('hidden',!registerMode);$('display-name').required=registerMode;$('auth-submit').textContent=registerMode?'Tạo tài khoản bệnh nhân':'Đăng nhập';$('auth-toggle').textContent=registerMode?'Quay lại đăng nhập':'Tạo tài khoản bệnh nhân';$('password').autocomplete=registerMode?'new-password':'current-password'};
 $('auth-form').onsubmit=async e=>{e.preventDefault();$('auth-submit').disabled=true;try{const path=registerMode?'/api/register':'/api/login';const body={username:$('username').value.trim(),password:$('password').value};if(registerMode)body.name=$('display-name').value.trim();const d=await api(path,'POST',body);csrf=d.csrf||'';if(d.user){showApp(d.user);navigate('dashboard');notify(registerMode?'Đã tạo tài khoản bệnh nhân.':'Đăng nhập thành công.')}else notify(d.message||'Thành công.');$('password').value=''}catch(err){notify(err.message)}finally{$('auth-submit').disabled=false}};
@@ -93,8 +94,31 @@ $('patient-search').value='';
 
 let batchOutput=[];
 function csvCell(v){const s=String(v??'');return /[",\\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+
+async function drawDecisionSlice(){
+ const x=$('slice-x').value,y=$('slice-y').value;if(!x||!y||x===y){notify('Chọn hai đặc trưng khác nhau.');return}
+ try{
+  const d=await api('/api/analytics/decision-slice?'+new URLSearchParams({x_feature:x,y_feature:y}));
+  const canvas=$('decision-canvas'),ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height,pad=55;
+  ctx.clearRect(0,0,W,H);const nx=d.x.length,ny=d.y.length;
+  const x0=d.x[0],x1=d.x[nx-1],y0=d.y[0],y1=d.y[ny-1];
+  const px=v=>pad+(v-x0)/(x1-x0)*(W-pad*1.5),py=v=>H-pad-(v-y0)/(y1-y0)*(H-pad*1.5);
+  const cw=(W-pad*1.5)/nx,ch=(H-pad*1.5)/ny;
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+   const z=d.decision[j][i];ctx.fillStyle=z>=0?'rgba(31,142,112,.20)':'rgba(190,75,85,.20)';
+   ctx.fillRect(pad+i*cw,H-pad-(j+1)*ch,cw+1,ch+1);
+  }
+  d.points.forEach(p=>{ctx.beginPath();ctx.arc(px(p.x),py(p.y),3,0,Math.PI*2);ctx.fillStyle=p.label===0?'#b43c4a':'#147f9a';ctx.fill();});
+  ctx.strokeStyle='#789098';ctx.lineWidth=1;ctx.strokeRect(pad,pad,W-pad*1.5,H-pad*1.5);
+  ctx.fillStyle=getComputedStyle(document.body).color;ctx.font='13px sans-serif';ctx.fillText(x,pad,H-12);ctx.save();ctx.translate(15,H/2);ctx.rotate(-Math.PI/2);ctx.fillText(y,0,0);ctx.restore();
+  $('slice-warning').textContent=d.fixed_features+' '+d.warning+' Điểm đỏ: ác tính; điểm xanh: lành tính.';
+ }catch(e){notify(e.message)}
+}
+
 async function loadAnalytics(){
  const [ev,ds,mi]=await Promise.all([api('/api/analytics/evaluation'),api('/api/analytics/dataset'),api('/api/models')]);
+ const sx=$('slice-x'),sy=$('slice-y');if(!sx.options.length){mi.feature_names.forEach(n=>{sx.add(new Option(n,n));sy.add(new Option(n,n))});sy.selectedIndex=1}
+
  const m=ev.metrics||{}, cards=[['Accuracy',m.accuracy],['Sensitivity ác tính',m.sensitivity_malignant],['Specificity lành tính',m.specificity_benign],['ROC-AUC',m.roc_auc_malignant],['Precision ác tính',m.precision_malignant],['F1 ác tính',m.f1_malignant]];
  $('metric-cards').replaceChildren();
  cards.forEach(([name,val])=>{const box=document.createElement('div');box.className='stat';const n=document.createElement('div');n.textContent=name;const v=document.createElement('strong');v.textContent=Number.isFinite(Number(val))?(Number(val)*100).toFixed(2)+'%':'—';box.append(n,v);$('metric-cards').append(box)});
@@ -105,7 +129,7 @@ async function loadAnalytics(){
  (ds.statistics||[]).forEach(r=>{const tr=document.createElement('tr');[r.feature,r.mean,r.std,r.min,r['50%'],r.max].forEach(v=>{const td=document.createElement('td');td.textContent=typeof v==='number'?v.toFixed(4):v;tr.append(td)});body.append(tr)});
  $('model-info').textContent=mi.model_name+' · Phiên bản '+mi.model_version+' · '+mi.dataset+' · '+mi.feature_count+' đặc trưng. '+mi.warning;
 }
-$('reload-analytics').onclick=()=>loadAnalytics().catch(e=>notify(e.message));
+$('reload-analytics').onclick=()=>loadAnalytics().catch(e=>notify(e.message));\n$('draw-slice').onclick=drawDecisionSlice;
 $('run-batch').onclick=async()=>{
  const file=$('batch-file').files[0];if(!file){notify('Hãy chọn tệp CSV.');return}
  if(file.size>2*1024*1024){notify('Tệp vượt quá 2 MB.');return}
