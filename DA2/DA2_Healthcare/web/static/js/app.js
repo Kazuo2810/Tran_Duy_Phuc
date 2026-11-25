@@ -1,0 +1,131 @@
+'use strict';
+const $=id=>document.getElementById(id);let csrf='',registerMode=false,currentUser=null,patients=[],selectedPatient=null,metadata=null,sample=null,lastPrediction=null;
+function notify(message){$('notice').textContent=message;$('notice').classList.remove('hidden');setTimeout(()=>$('notice').classList.add('hidden'),5500)}
+function csrfCookie(){const m=document.cookie.match(/(?:^|; )healthcare_csrf=([^;]+)/);return m?decodeURIComponent(m[1]):csrf}
+async function api(url,method='GET',body){const headers={'Content-Type':'application/json'};if(!['GET','HEAD','OPTIONS'].includes(method))headers['X-CSRF-Token']=csrfCookie();const r=await fetch(url,{method,credentials:'same-origin',headers,...(body!==undefined?{body:JSON.stringify(body)}:{})});let data;try{data=await r.json()}catch{throw Error('Máy chủ trả về dữ liệu không hợp lệ.')}if(!r.ok)throw Error(typeof data.detail==='string'?data.detail:JSON.stringify(data.detail||data));return data}
+function showAuth(){currentUser=null;csrf='';$('auth-screen').classList.remove('hidden');$('app-screen').classList.add('hidden');$('header-user-actions').classList.add('hidden')}
+function showApp(user){currentUser=user;$('auth-screen').classList.add('hidden');$('app-screen').classList.remove('hidden');$('header-user-actions').classList.remove('hidden');$('account-badge').textContent=user.username+' · '+user.role;$('role-badge').textContent='Vai trò: '+user.role;$('nav-staff').classList.toggle('hidden',user.role!=='admin');$('nav-batch').classList.toggle('hidden',!['admin','staff'].includes(user.role));$('nav-admin').classList.toggle('hidden',!(user.role==='admin'||user.idp_is_admin));$('add-patient').classList.toggle('hidden',!['admin','staff'].includes(user.role));$('my-username').textContent=user.username;$('my-name').textContent=user.name;$('my-role').textContent=user.role;$('my-id').textContent=user.id;}
+async function loadDashboard(){const d=await api('/api/dashboard/summary');$('stat-patients').textContent=d.patients;$('stat-staff').textContent=d.staff;$('stat-predictions').textContent=d.predictions;$('stat-users').textContent=d.users}
+function navigate(page){document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));['dashboard','patients','predict','history','analytics','batch','staff','admin','profile'].forEach(p=>$('page-'+p).classList.toggle('hidden',p!==page));if(page==='analytics')loadAnalytics().then(drawDecisionSlice).catch(e=>notify(e.message));if(page==='dashboard')loadDashboard().catch(e=>notify(e.message));if(page==='patients')loadPatients().catch(e=>notify(e.message));if(page==='history')loadHistory().catch(e=>notify(e.message));if(page==='staff')loadStaff().catch(e=>notify(e.message));if(page==='admin')loadAdmin().catch(e=>notify(e.message));if(page==='predict')loadPredictionPage().catch(e=>notify(e.message));}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));
+$('auth-toggle').onclick=()=>{registerMode=!registerMode;$('name-field').classList.toggle('hidden',!registerMode);$('display-name').required=registerMode;$('auth-submit').textContent=registerMode?'Tạo tài khoản bệnh nhân':'Đăng nhập';$('auth-toggle').textContent=registerMode?'Quay lại đăng nhập':'Tạo tài khoản bệnh nhân';$('password').autocomplete=registerMode?'new-password':'current-password'};
+$('auth-form').onsubmit=async e=>{e.preventDefault();$('auth-submit').disabled=true;try{const path=registerMode?'/api/register':'/api/login';const body={username:$('username').value.trim(),password:$('password').value};if(registerMode)body.name=$('display-name').value.trim();const d=await api(path,'POST',body);csrf=d.csrf||'';if(d.user){showApp(d.user);navigate('dashboard');notify(registerMode?'Đã tạo tài khoản bệnh nhân.':'Đăng nhập thành công.')}else notify(d.message||'Thành công.');$('password').value=''}catch(err){notify(err.message)}finally{$('auth-submit').disabled=false}};
+$('logout').onclick=async()=>{try{await api('/api/logout','POST')}catch(e){}showAuth();notify('Đã đăng xuất.')};
+async function loadPatients(){const d=await api('/api/patients');patients=d.items||[];renderPatients();const sel=$('prediction-patient');sel.replaceChildren(new Option('-- Chọn bệnh nhân --',''));patients.forEach(p=>sel.add(new Option(p.patient_code+' · '+p.full_name,p.id)));const as=$('assign-patient');if(as){as.replaceChildren();patients.forEach(p=>as.add(new Option(p.patient_code+' · '+p.full_name,p.id)))}}
+function renderPatients(){const body=$('patient-rows');body.replaceChildren();const q=$('patient-search').value.toLowerCase();const rows=patients.filter(p=>(p.full_name+' '+p.patient_code).toLowerCase().includes(q));$('patient-empty').classList.toggle('hidden',rows.length>0);rows.forEach(p=>{const tr=document.createElement('tr');[p.patient_code,p.full_name,p.birth_date||'',p.phone||''].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});const td=document.createElement('td');const b=document.createElement('button');b.className='secondary';b.textContent='Mở hồ sơ';b.onclick=()=>openPatient(p.id);td.append(b);tr.append(td);body.append(tr)})}
+$('patient-search').oninput=renderPatients;$('reload-patients').onclick=()=>loadPatients().catch(e=>notify(e.message));$('add-patient').onclick=()=>{selectedPatient=null;$('patient-detail').classList.remove('hidden');$('patient-title').textContent='Tạo hồ sơ bệnh nhân';$('patient-code').textContent='Mã sẽ được tự tạo';$('patient-form').reset();$('p-notes-wrap').classList.remove('hidden');$('save-patient').textContent='Tạo hồ sơ'};$('close-patient').onclick=()=>$('patient-detail').classList.add('hidden');
+async function openPatient(id){const p=await api('/api/patients/'+id);selectedPatient=p;$('patient-detail').classList.remove('hidden');$('patient-title').textContent=p.full_name;$('patient-code').textContent=p.patient_code;[['p-full-name','full_name'],['p-birth-date','birth_date'],['p-gender','gender'],['p-phone','phone'],['p-email','email'],['p-address','address'],['p-notes','notes']].forEach(([el,key])=>$(el).value=p[key]||'');const isPatient=currentUser.role==='patient';['p-full-name','p-birth-date','p-gender','p-notes'].forEach(id=>$(id).disabled=isPatient);$('p-notes-wrap').classList.toggle('hidden',isPatient);$('save-patient').classList.toggle('hidden',false);$('go-predict').classList.toggle('hidden',isPatient);}
+$('patient-form').onsubmit=async e=>{e.preventDefault();let body={full_name:$('p-full-name').value,birth_date:$('p-birth-date').value||null,gender:$('p-gender').value,phone:$('p-phone').value,email:$('p-email').value,address:$('p-address').value,notes:$('p-notes').value};if(currentUser.role==='patient')body={phone:$('p-phone').value,email:$('p-email').value,address:$('p-address').value};try{if(selectedPatient){await api('/api/patients/'+selectedPatient.id,'PUT',body);notify('Đã cập nhật hồ sơ.')}else{const p=await api('/api/patients','POST',body);selectedPatient=p;notify('Đã tạo hồ sơ '+p.patient_code)}await loadPatients();if(selectedPatient)await openPatient(selectedPatient.id)}catch(err){notify(err.message)}};
+$('go-predict').onclick=()=>{if(selectedPatient){navigate('predict');$('prediction-patient').value=selectedPatient.id}};$('view-patient-history').onclick=()=>navigate('history');
+function fillModelSelectors(){const selects=[$('prediction-model'),$('analytics-model')].filter(Boolean);selects.forEach(sel=>{const current=sel.value||metadata.default_model;sel.replaceChildren();metadata.models.forEach(m=>sel.add(new Option(m.model_name+' · '+m.kernel,m.model_key)));sel.value=metadata.models.some(m=>m.model_key===current)?current:metadata.default_model});$('model-version').textContent='4 mô hình · mặc định '+(metadata.models.find(m=>m.model_key===metadata.default_model)?.model_name||metadata.default_model)}
+async function loadPredictionPage(){if(!metadata){metadata=await api('/api/models');sample=await api('/api/sample');fillModelSelectors();buildFeatureFields()}if(currentUser.role==='patient'){$('predict-form').classList.add('hidden');notify('Tài khoản bệnh nhân chỉ xem hồ sơ và lịch sử.')}else{$('predict-form').classList.remove('hidden');if(!patients.length)await loadPatients()}}
+function buildFeatureFields(){const root=$('feature-fields');root.replaceChildren();const names=metadata.feature_names;[['Mean · Trung bình',0],['Error · Sai số chuẩn',10],['Worst · Giá trị lớn nhất',20]].forEach(([title,start])=>{const box=document.createElement('div');box.className='feature-group';const h=document.createElement('h3');h.textContent=title;box.append(h);names.slice(start,start+10).forEach((name,i)=>{const label=document.createElement('label');label.textContent=name;const input=document.createElement('input');input.type='number';input.min='0';input.step='any';input.required=true;input.dataset.feature=name;box.append(label,input)});root.append(box)})}
+function fillFeatures(obj){document.querySelectorAll('[data-feature]').forEach(input=>{input.value=obj[input.dataset.feature]??''})}
+$('fill-sample').onclick=()=>fillFeatures(sample.features);$('clear-features').onclick=()=>$('predict-form').reset();$('download-sample').onclick=()=>{const blob=new Blob([JSON.stringify(sample,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sample_wdbc.json';a.click();URL.revokeObjectURL(a.href)};
+$('import-json').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());fillFeatures(d.features)}catch(err){notify('File JSON không hợp lệ: '+err.message)}};
+$('predict-form').onsubmit=async e=>{e.preventDefault();const patientId=$('prediction-patient').value;if(!patientId){notify('Hãy chọn hồ sơ bệnh nhân.');return}const features={};document.querySelectorAll('[data-feature]').forEach(i=>features[i.dataset.feature]=Number(i.value));$('predict-submit').disabled=true;try{const model_key=$('prediction-model').value;const d=await api('/api/patients/'+patientId+'/predict','POST',{features,model_key});lastPrediction={patient_id:patientId,features,result:d,created_at:new Date().toISOString()};$('prediction-result').classList.remove('hidden');$('prediction-label').textContent=d.predicted_label==='malignant'?'Kết quả: Ác tính (malignant)':'Kết quả: Lành tính (benign)';$('prob-malignant').textContent='Xác suất mô hình – ác tính: '+(d.probability_malignant*100).toFixed(2)+'%';$('prob-benign').textContent='Xác suất mô hình – lành tính: '+(d.probability_benign*100).toFixed(2)+'%';$('bar-malignant').style.width=(d.probability_malignant*100)+'%';$('bar-benign').style.width=(d.probability_benign*100)+'%';$('prediction-warning').textContent=d.warning+' Phiên bản: '+d.model_version;notify('Đã lưu lịch sử dự đoán cho bệnh nhân.')}catch(err){notify(err.message)}finally{$('predict-submit').disabled=false}};
+let historyOffset=0,historyLimit=25,historyTotal=0;
+function historyParams(){const p=new URLSearchParams({limit:String(historyLimit),offset:String(historyOffset),patient:$('history-patient').value.trim(),label:$('history-label').value,start_date:$('history-start').value,end_date:$('history-end').value});return p.toString()}
+async function loadHistory(){
+ const d=await api('/api/history?'+historyParams());historyTotal=d.total||0;
+ const root=$('history-rows');root.replaceChildren();$('history-empty').classList.toggle('hidden',(d.items||[]).length>0);
+ $('bulk-delete-history').classList.toggle('hidden',currentUser.role!=='admin');
+ (d.items||[]).forEach(r=>{
+  const tr=document.createElement('tr');
+  const pick=document.createElement('td');const cb=document.createElement('input');cb.type='checkbox';cb.className='history-pick';cb.value=r.id;cb.style.width='auto';pick.append(cb);tr.append(pick);
+  [r.created_at?.replace('T',' ').slice(0,19),r.patient_code,r.patient_name,r.predicted_label,(r.probability_malignant*100).toFixed(2)+'%',(r.probability_benign*100).toFixed(2)+'%'].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.append(td)});
+  const action=document.createElement('td');const b=document.createElement('button');b.className='secondary';b.textContent='Xem';b.onclick=async()=>{try{const detail=await api('/api/history/'+r.id);$('history-detail-json').textContent=JSON.stringify(detail,null,2);$('history-detail').classList.remove('hidden')}catch(e){notify(e.message)}};action.append(b);tr.append(action);root.append(tr)
+ });
+ $('history-page-info').textContent='Hiển thị '+(historyTotal?historyOffset+1:0)+'–'+Math.min(historyOffset+(d.items||[]).length,historyTotal)+' / '+historyTotal;
+ $('history-prev').disabled=historyOffset===0;$('history-next').disabled=historyOffset+historyLimit>=historyTotal;
+}
+$('download-current-result').onclick=()=>{
+ if(!lastPrediction){notify('Chưa có kết quả dự đoán để tải.');return}
+ const blob=new Blob([JSON.stringify(lastPrediction,null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wdbc_prediction_result.json';a.click();URL.revokeObjectURL(a.href);
+};
+$('reload-history').onclick=()=>loadHistory().catch(e=>notify(e.message));
+$('apply-history').onclick=()=>{historyOffset=0;loadHistory().catch(e=>notify(e.message))};
+$('history-prev').onclick=()=>{historyOffset=Math.max(0,historyOffset-historyLimit);loadHistory().catch(e=>notify(e.message))};
+$('history-next').onclick=()=>{historyOffset+=historyLimit;loadHistory().catch(e=>notify(e.message))};
+$('bulk-delete-history').onclick=async()=>{const ids=[...document.querySelectorAll('.history-pick:checked')].map(x=>x.value);if(!ids.length){notify('Chọn ít nhất một bản ghi.');return}if(!confirm('Xóa '+ids.length+' bản ghi đã chọn?'))return;try{const d=await api('/api/history/bulk-delete','POST',{ids});notify('Đã xóa '+d.deleted+' bản ghi.');loadHistory()}catch(e){notify(e.message)}};
+$('export-filtered').onclick=()=>{const p=new URLSearchParams({patient:$('history-patient').value.trim(),label:$('history-label').value,start_date:$('history-start').value,end_date:$('history-end').value});window.location.href='/api/export?'+p.toString()};
+
+async function loadStaff(){const d=await api('/api/admin/staff');const root=$('staff-rows');root.replaceChildren();(d.items||[]).forEach(s=>{const tr=document.createElement('tr');[s.full_name,s.username,s.department,s.position,s.phone].forEach(v=>{const td=document.createElement('td');td.textContent=v||'';tr.append(td)});root.append(tr)})}
+async function loadAdmin(){if(currentUser.idp_is_admin&&currentUser.role==='patient'){$('bootstrap-box').classList.remove('hidden');return}else $('bootstrap-box').classList.add('hidden');const [u,a,p,s]=await Promise.all([api('/api/admin/users'),api('/api/admin/assignments'),api('/api/patients'),api('/api/admin/staff')]);const users=$('user-rows');users.replaceChildren();(u.items||[]).forEach(x=>{const tr=document.createElement('tr');[x.username,x.display_name,x.role,x.status].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});const td=document.createElement('td');const sel=document.createElement('select');['patient','staff','admin'].forEach(r=>sel.add(new Option(r,r)));sel.value=x.role;const b=document.createElement('button');b.textContent='Lưu';b.className='secondary';b.onclick=async()=>{try{await api('/api/admin/users/'+x.id+'/role','PATCH',{role:sel.value});notify('Đã cập nhật vai trò.');await loadAdmin()}catch(e){notify(e.message)}};td.append(sel,b);tr.append(td);users.append(tr)});const staffSel=$('assign-staff');staffSel.replaceChildren();(s.items||[]).forEach(x=>staffSel.add(new Option(x.full_name+' · '+x.username,x.user_id)));const patSel=$('assign-patient');patSel.replaceChildren();(p.items||[]).forEach(x=>patSel.add(new Option(x.patient_code+' · '+x.full_name,x.id)));const ar=$('assignment-rows');ar.replaceChildren();(a.items||[]).forEach(x=>{const tr=document.createElement('tr');[x.staff_name,x.patient_code,x.patient_name,x.status].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});const td=document.createElement('td');if(x.status==='active'){const b=document.createElement('button');b.className='danger';b.textContent='Ngừng';b.onclick=async()=>{try{await api('/api/admin/assignments/'+x.id,'DELETE');await loadAdmin()}catch(e){notify(e.message)}};td.append(b)}tr.append(td);ar.append(tr)});const logs=await api('/api/admin/audit-logs');const lr=$('audit-rows');lr.replaceChildren();(logs.items||[]).forEach(x=>{const tr=document.createElement('tr');[x.created_at?.replace('T',' ').slice(0,19),x.actor_id,x.action,x.resource_type].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.append(td)});lr.append(tr)})}
+$('create-assignment').onclick=async()=>{try{await api('/api/admin/assignments','POST',{staff_user_id:$('assign-staff').value,patient_id:$('assign-patient').value});notify('Đã phân công.');await loadAdmin()}catch(e){notify(e.message)}};
+$('bootstrap-admin').onclick=async()=>{try{await api('/api/admin/bootstrap','POST',{});notify('Đã khởi tạo Admin Healthcare. Đăng xuất rồi đăng nhập lại.')}catch(e){notify(e.message)}};
+$('bootstrap-admin').disabled=false;
+$('patient-search').value='';
+
+let batchOutput=[];
+function csvCell(v){const s=String(v??'');return /[",\\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+
+async function drawDecisionSlice(){
+ const x=$('slice-x').value,y=$('slice-y').value;if(!x||!y||x===y){notify('Chọn hai đặc trưng khác nhau.');return}
+ try{
+  const d=await api('/api/analytics/decision-slice?'+new URLSearchParams({x_feature:x,y_feature:y,model_key:$('analytics-model').value}));
+  const canvas=$('decision-canvas'),ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height,pad=55;
+  ctx.clearRect(0,0,W,H);const nx=d.x.length,ny=d.y.length;
+  const x0=d.x[0],x1=d.x[nx-1],y0=d.y[0],y1=d.y[ny-1];
+  const px=v=>pad+(v-x0)/(x1-x0)*(W-pad*1.5),py=v=>H-pad-(v-y0)/(y1-y0)*(H-pad*1.5);
+  const cw=(W-pad*1.5)/nx,ch=(H-pad*1.5)/ny;
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+   const z=d.decision[j][i];ctx.fillStyle=z>=0?'rgba(31,142,112,.20)':'rgba(190,75,85,.20)';
+   ctx.fillRect(pad+i*cw,H-pad-(j+1)*ch,cw+1,ch+1);
+  }
+  d.points.forEach(p=>{ctx.beginPath();ctx.arc(px(p.x),py(p.y),3,0,Math.PI*2);ctx.fillStyle=p.label===0?'#b43c4a':'#147f9a';ctx.fill();});
+  ctx.strokeStyle='#789098';ctx.lineWidth=1;ctx.strokeRect(pad,pad,W-pad*1.5,H-pad*1.5);
+  ctx.fillStyle=getComputedStyle(document.body).color;ctx.font='13px sans-serif';ctx.fillText(x,pad,H-12);ctx.save();ctx.translate(15,H/2);ctx.rotate(-Math.PI/2);ctx.fillText(y,0,0);ctx.restore();
+  $('slice-warning').textContent=d.fixed_features+' '+d.warning+' Điểm đỏ: ác tính; điểm xanh: lành tính.';
+ }catch(e){notify(e.message)}
+}
+
+async function loadAnalytics(){
+ const [ds,mi]=await Promise.all([api('/api/analytics/dataset'),api('/api/models')]);metadata=mi;fillModelSelectors();const selected=$('analytics-model').value;const ev=await api('/api/analytics/evaluation?model_key='+encodeURIComponent(selected));
+ const sx=$('slice-x'),sy=$('slice-y');if(!sx.options.length){mi.feature_names.forEach(n=>{sx.add(new Option(n,n));sy.add(new Option(n,n))});sy.selectedIndex=1}
+
+ const selectedMeta=mi.models.find(x=>x.model_key===selected);$('model-metrics-caption').textContent=(selectedMeta?.model_name||selected)+' · Tham số tốt nhất: '+JSON.stringify(selectedMeta?.best_params||{});renderModelComparison(mi.models,selected);const m=ev.metrics||{}, cards=[['Accuracy',m.accuracy],['Sensitivity ác tính',m.sensitivity_malignant],['Specificity lành tính',m.specificity_benign],['ROC-AUC',m.roc_auc_malignant],['Precision ác tính',m.precision_malignant],['F1 ác tính',m.f1_malignant]];
+ $('metric-cards').replaceChildren();
+ cards.forEach(([name,val])=>{const box=document.createElement('div');box.className='stat';const n=document.createElement('div');n.textContent=name;const v=document.createElement('strong');v.textContent=Number.isFinite(Number(val))?(Number(val)*100).toFixed(2)+'%':'—';box.append(n,v);$('metric-cards').append(box)});
+ const cm=ev.confusion_matrix||[];const labels=['Ác tính','Lành tính'];let html='<table><thead><tr><th>Thực tế / Dự đoán</th><th>Ác tính</th><th>Lành tính</th></tr></thead><tbody>';
+ cm.forEach((row,i)=>{html+='<tr><th>'+labels[i]+'</th><td>'+row[0]+'</td><td>'+row[1]+'</td></tr>'});$('confusion-view').innerHTML=html+'</tbody></table>';
+ $('dataset-summary').innerHTML='<div class="stat">Số mẫu<strong>'+ds.samples+'</strong></div><div class="stat">Số đặc trưng<strong>'+ds.features+'</strong></div><div class="stat">Mẫu ác tính<strong>'+ds.class_counts.malignant+'</strong></div><div class="stat">Mẫu lành tính<strong>'+ds.class_counts.benign+'</strong></div>';
+ const body=$('feature-stat-rows');body.replaceChildren();
+ (ds.statistics||[]).forEach(r=>{const tr=document.createElement('tr');[r.feature,r.mean,r.std,r.min,r['50%'],r.max].forEach(v=>{const td=document.createElement('td');td.textContent=typeof v==='number'?v.toFixed(4):v;tr.append(td)});body.append(tr)});
+ $('model-info').textContent=(selectedMeta?.model_name||mi.model_name)+' · Phiên bản '+(selectedMeta?.model_version||mi.model_version)+' · '+mi.dataset+' · '+mi.feature_count+' đặc trưng. '+mi.warning;
+}
+function renderModelComparison(models,selected){const root=$('model-comparison');if(!root)return;const rows=models.map(m=>{const x=m.metrics||{};return '<tr class="'+(m.model_key===selected?'selected':'')+'"><td><strong>'+m.model_name+'</strong><br><small>'+m.kernel+'</small></td><td>'+((x.accuracy||0)*100).toFixed(2)+'%</td><td>'+((x.sensitivity_malignant||0)*100).toFixed(2)+'%</td><td>'+((x.specificity_benign||0)*100).toFixed(2)+'%</td><td>'+((x.roc_auc_malignant||0)*100).toFixed(2)+'%</td><td>'+((x.cv_recall_macro||0)*100).toFixed(2)+'%</td></tr>'}).join('');root.innerHTML='<table><thead><tr><th>Mô hình</th><th>Accuracy</th><th>Sensitivity ác tính</th><th>Specificity lành tính</th><th>ROC-AUC</th><th>CV Recall Macro</th></tr></thead><tbody>'+rows+'</tbody></table>'}
+$('analytics-model').onchange=()=>loadAnalytics().then(drawDecisionSlice).catch(e=>notify(e.message));$('prediction-model').onchange=()=>{$('prediction-model-note').textContent='Mô hình được áp dụng cho dự đoán mới và dự đoán hàng loạt.'};
+$('reload-analytics').onclick=()=>loadAnalytics().catch(e=>notify(e.message));
+$('draw-slice').onclick=drawDecisionSlice;
+$('run-batch').onclick=async()=>{
+ const file=$('batch-file').files[0];if(!file){notify('Hãy chọn tệp CSV.');return}
+ if(file.size>2*1024*1024){notify('Tệp vượt quá 2 MB.');return}
+ $('run-batch').disabled=true;
+ try{
+  const csv=await file.text();const data=await api('/api/predict/batch-csv','POST',{csv,model_key:$('prediction-model').value});batchOutput=data.items||[];
+  const root=$('batch-results');root.replaceChildren();
+  batchOutput.forEach(r=>{const tr=document.createElement('tr');[r.row,r.predicted_label||'—',r.probability_malignant==null?'—':(r.probability_malignant*100).toFixed(2)+'%',r.probability_benign==null?'—':(r.probability_benign*100).toFixed(2)+'%',r.error||'Thành công'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});root.append(tr)});
+  $('batch-status').textContent='Đã xử lý '+data.count+' dòng. '+data.warning;
+  $('download-batch').disabled=!batchOutput.length;
+ }catch(e){notify(e.message)}finally{$('run-batch').disabled=false}
+};
+$('download-batch').onclick=()=>{
+ const header=['row','predicted_label','probability_malignant','probability_benign','error'];
+ const lines=[header.join(',')].concat(batchOutput.map(r=>header.map(k=>csvCell(r[k])).join(',')));
+ const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wdbc_batch_predictions.csv';a.click();URL.revokeObjectURL(a.href);
+};
+function applyTheme(dark){
+ document.body.classList.toggle('dark',dark);
+ document.documentElement.style.colorScheme=dark?'dark':'light';
+ $('theme-toggle').innerHTML=dark?'☀ <span>Giao diện sáng</span>':'☾ <span>Giao diện tối</span>';
+ try{localStorage.setItem('healthcare-theme',dark?'dark':'light')}catch(e){}
+}
+$('theme-toggle').onclick=()=>applyTheme(!document.body.classList.contains('dark'));
+$('account-profile').onclick=()=>navigate('profile');
+try{applyTheme(localStorage.getItem('healthcare-theme')==='dark')}catch(e){applyTheme(false)}
+
+async function init(){try{const h=await fetch('/health');const hd=await h.json();$('server-status').textContent=hd.status==='ok'?'● API & mô hình sẵn sàng':'API chưa sẵn sàng';const m=await api('/api/me');csrf=m.csrf;showApp(m.user);navigate('dashboard')}catch(e){showAuth();$('server-status').textContent='● API trực tuyến · Chưa đăng nhập'}}
+init();
