@@ -71,6 +71,21 @@ def test_public_model_api(client):
     assert result.status_code == 200
     assert result.json()["predicted_label"] in ("malignant", "benign")
 
+def test_four_svm_models_can_be_selected(client):
+    model_info = client.get("/api/models")
+    assert model_info.status_code == 200
+    models = model_info.json()["models"]
+    assert {item["model_key"] for item in models} == {
+        "SVM_LINEAR", "SVM_RBF", "SVM_POLY", "SVM_SIGMOID"
+    }
+    sample = client.get("/api/sample").json()
+    for key in ("SVM_LINEAR", "SVM_RBF", "SVM_POLY", "SVM_SIGMOID"):
+        payload = {**sample, "model_key": key}
+        result = client.post("/predict", json=payload)
+        assert result.status_code == 200, result.text
+        assert result.json()["model_key"] == key
+
+
 def test_patient_staff_admin_assignment_and_isolation(client, fake_idp):
     # Tạo Admin đầu tiên thông qua tài khoản Admin IdP.
     register(client, "root_admin", "Quản trị viên")
