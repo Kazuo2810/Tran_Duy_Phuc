@@ -1,5 +1,5 @@
 from io import BytesIO
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from datetime import date, datetime, time, timedelta
 from sqlalchemy import or_
 from fastapi.responses import StreamingResponse
