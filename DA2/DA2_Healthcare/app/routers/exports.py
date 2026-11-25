@@ -1,5 +1,6 @@
 from io import BytesIO
 from fastapi import APIRouter, Depends, Query
+from datetime import date, datetime, time, timedelta
 from sqlalchemy import or_
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
@@ -35,10 +36,13 @@ def export_history(
         term = "%" + patient.strip() + "%"
         q = q.where(or_(patient_profiles.c.patient_code.ilike(term),
                         patient_profiles.c.full_name.ilike(term)))
-    if start_date:
-        q = q.where(prediction_history.c.created_at >= start_date)
-    if end_date:
-        q = q.where(prediction_history.c.created_at < end_date + " 23:59:59.999999")
+    try:
+        if start_date:
+            q = q.where(prediction_history.c.created_at >= datetime.combine(date.fromisoformat(start_date), time.min))
+        if end_date:
+            q = q.where(prediction_history.c.created_at < datetime.combine(date.fromisoformat(end_date) + timedelta(days=1), time.min))
+    except ValueError:
+        raise HTTPException(422, "Ngày lọc phải theo định dạng YYYY-MM-DD.")
     with engine.connect() as con:
         rows = con.execute(q.order_by(prediction_history.c.created_at.desc())).mappings().all()
     wb = Workbook(); ws = wb.active; ws.title = "Lịch sử WDBC"
