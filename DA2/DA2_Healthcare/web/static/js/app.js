@@ -33,7 +33,7 @@ async function loadHistory(){
  (d.items||[]).forEach(r=>{
   const tr=document.createElement('tr');
   const pick=document.createElement('td');const cb=document.createElement('input');cb.type='checkbox';cb.className='history-pick';cb.value=r.id;cb.style.width='auto';pick.append(cb);tr.append(pick);
-  [r.created_at?.replace('T',' ').slice(0,19),r.patient_code,r.patient_name,r.predicted_label,(r.probability_malignant*100).toFixed(2)+'%',(r.probability_benign*100).toFixed(2)+'%'].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.append(td)});
+  [r.created_at?.replace('T',' ').slice(0,19),r.patient_code,r.patient_name,r.model_name||'SVM RBF',r.predicted_label,(r.probability_malignant*100).toFixed(2)+'%',(r.probability_benign*100).toFixed(2)+'%'].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.append(td)});
   const action=document.createElement('td');const b=document.createElement('button');b.className='secondary';b.textContent='Xem';b.onclick=async()=>{try{const detail=await api('/api/history/'+r.id);$('history-detail-json').textContent=JSON.stringify(detail,null,2);$('history-detail').classList.remove('hidden')}catch(e){notify(e.message)}};action.append(b);tr.append(action);root.append(tr)
  });
  $('history-page-info').textContent='Hiển thị '+(historyTotal?historyOffset+1:0)+'–'+Math.min(historyOffset+(d.items||[]).length,historyTotal)+' / '+historyTotal;
