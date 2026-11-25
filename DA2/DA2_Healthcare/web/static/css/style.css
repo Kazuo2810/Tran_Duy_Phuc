@@ -110,3 +110,5 @@ body.dark .features .feature-group{background:var(--iris-surface);border-color:v
 #random-features{font-weight:700}
 
 .audit-filters{margin:10px 0 4px}.audit-filters input,.audit-filters select{min-width:150px}#audit-detail{margin-top:16px;color:var(--iris-text);font-size:12px}#audit-rows button{padding:7px 12px}
+
+#audit-rows input[type=checkbox],#audit-select-all{width:16px;height:16px;accent-color:#06b6d4;cursor:pointer}#delete-selected-audit{margin-left:auto}
