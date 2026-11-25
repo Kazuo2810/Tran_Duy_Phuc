@@ -3,111 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Healthcare • Hồ sơ bệnh nhân & WDBC</title>
-<style>
-:root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#18323b;background:#f2f6f8;font-size:14px}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{border:0;border-radius:9px;padding:10px 14px;background:#087f86;color:white;font-weight:650;cursor:pointer}button.secondary{background:#e3eff0;color:#18535b}button.danger{background:#a83243}button:disabled{opacity:.5;cursor:not-allowed}input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd9df;border-radius:9px;background:#fff;color:#18323b}label{display:block;font-size:12px;font-weight:650;margin:12px 0 6px}header{height:68px;background:#123c46;color:white;display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:5}header small{color:#b8d3d8}.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 68px)}aside{background:#fff;border-right:1px solid #dce7eb;padding:20px 14px}.nav{display:grid;gap:7px}.nav button{text-align:left;background:transparent;color:#45616a}.nav button.active,.nav button:hover{background:#e3f2f2;color:#087f86}.main{padding:26px;max-width:1500px;width:100%;margin:auto}.page-title{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}.page-title h1{margin:0 0 6px;font-size:26px}.muted{color:#657d85}.card{background:#fff;border:1px solid #dce7eb;border-radius:15px;padding:20px;margin-bottom:18px;box-shadow:0 5px 18px #153d4808}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{background:#fff;border:1px solid #dce7eb;border-radius:13px;padding:18px}.stat strong{display:block;font-size:28px;margin-top:8px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:640px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #e8eef0}th{font-size:12px;color:#557079;background:#f7fafb}.badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#e3eff0;color:#18535b;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.hidden{display:none!important}.auth-wrap{max-width:460px;margin:8vh auto;padding:20px}.auth-wrap .card{padding:28px}.notice{position:fixed;right:20px;top:82px;z-index:10;background:#123c46;color:white;padding:13px 17px;border-radius:10px;max-width:420px;box-shadow:0 8px 24px #0002}.warning{background:#fff8e8;border-left:4px solid #e1a342;padding:13px 16px;border-radius:8px;line-height:1.55;margin-bottom:18px}.features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.feature-group{border:1px solid #e4edef;border-radius:10px;padding:12px}.feature-group h3{margin:0 0 8px;font-size:14px}.feature-group label{font-size:11px}.feature-group input{padding:7px}.result{font-size:25px;font-weight:750;margin:12px 0}.bar{height:10px;background:#e8eef0;border-radius:9px;overflow:hidden;margin:8px 0 16px}.bar span{display:block;height:100%;background:#087f86}.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 14px}.pill{border-radius:20px;background:#eef4f5;padding:6px 10px;font-size:12px}.empty{padding:26px;text-align:center;color:#6b8187}.inline{display:flex;gap:10px;align-items:center}.inline>*{flex:1}footer{text-align:center;color:#7a9097;padding:24px}@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.features{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:190px 1fr}.main{padding:18px}}@media(max-width:650px){header{padding:0 14px}.layout{display:block}aside{border-right:0;border-bottom:1px solid #dce7eb;padding:9px;overflow:auto}.nav{display:flex;min-width:max-content}.nav button{padding:9px 11px}.main{padding:14px}.grid,.grid.two,.features,.form-grid{grid-template-columns:1fr}.page-title{display:block}.page-title .actions{margin-bottom:12px}}
-body.dark{background:#101b22;color:#e1edf0}body.dark aside,body.dark .card,body.dark .stat{background:#172831;border-color:#30454e;color:#e1edf0}body.dark .nav button{color:#c4d6da}body.dark .nav button.active,body.dark .nav button:hover{background:#25434b;color:#83d9d4}body.dark input,body.dark select,body.dark textarea{background:#102029;color:#e1edf0;border-color:#3b5660}body.dark th{background:#20343d;color:#c4d6da}body.dark td,body.dark th{border-color:#30454e}body.dark .muted{color:#a4bbc1}body.dark .pill{background:#253c45;color:#e1edf0}body.dark .badge{background:#25434b;color:#a9e4df}body.dark button.secondary{background:#29434c;color:#d4e5e8}body.dark .feature-group{border-color:#30454e}
-header{gap:16px}
-.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-width:0}
-.header-user-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
-.header-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 12px;border:1px solid #ffffff35;border-radius:10px;background:#ffffff14;color:#fff;font-weight:650;white-space:nowrap}
-.header-btn:hover{background:#ffffff28}
-.account-btn{max-width:230px}
-#account-badge{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;font-size:13px}
-.logout-btn{background:#b94b56;border-color:#d16a73}
-body.dark{background:#101b22;color:#e1edf0}
-body.dark header{background:#0b252d}
-body.dark aside,body.dark .card,body.dark .stat{background:#172831;border-color:#30454e;color:#e1edf0}
-body.dark .nav button{color:#c4d6da}
-body.dark .nav button.active,body.dark .nav button:hover{background:#25434b;color:#83d9d4}
-body.dark input,body.dark select,body.dark textarea{background:#102029;color:#e1edf0;border-color:#3b5660}
-body.dark th{background:#20343d;color:#c4d6da}
-body.dark td,body.dark th{border-color:#30454e}
-body.dark .muted{color:#a4bbc1}
-body.dark .pill{background:#253c45;color:#e1edf0}
-body.dark .badge{background:#25434b;color:#a9e4df}
-body.dark button.secondary{background:#29434c;color:#d4e5e8}
-body.dark .feature-group{border-color:#30454e}
-body.dark .warning{background:#3a3423;color:#f0dfac;border-color:#655832}
-body.dark .empty{color:#a4bbc1}
-@media(max-width:760px){
- header{height:auto;min-height:68px;padding:12px 14px;align-items:flex-start}
- header .brand{font-size:12px}
- header .brand small{font-size:10px}
- .header-actions{flex-direction:column;align-items:flex-end;gap:7px}
- .header-user-actions{flex-wrap:wrap;gap:5px}
- .header-btn{font-size:11px;padding:7px 8px;min-height:34px}
- #account-badge{max-width:100px}
-}
-
-/* ===== Healthcare theme aligned with DA1 cyan palette ===== */
-:root{
- --iris-bg:#f8fafc;--iris-surface:#ffffff;--iris-text:#0f172a;--iris-muted:#475569;
- --iris-primary:#06b6d4;--iris-primary-hover:#0891b2;--iris-border:#e2e8f0;
- --iris-soft:#ecfeff;--iris-shadow:0 8px 24px rgba(15,23,42,.06);
-}
-html{scroll-behavior:smooth}
-body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--iris-bg);color:var(--iris-text);line-height:1.6;transition:background .25s,color .25s}
-header{background:rgba(255,255,255,.96);backdrop-filter:blur(16px);color:var(--iris-text);border-bottom:1px solid var(--iris-border);box-shadow:0 2px 12px rgba(15,23,42,.04)}
-header small{color:var(--iris-muted)}
-.header-btn{color:var(--iris-text);background:#fff;border:1px solid var(--iris-border);transition:.2s}
-.header-btn:hover{background:var(--iris-soft);border-color:var(--iris-primary)}
-.logout-btn{background:#ef4444;color:#fff;border-color:#ef4444}
-.logout-btn:hover{background:#dc2626;color:#fff}
-.layout{display:block;min-height:calc(100vh - 68px)}
-aside{position:sticky;top:68px;z-index:4;width:100%;padding:0 20px;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-right:0;border-bottom:1px solid var(--iris-border)}
-.nav{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:5px;overflow-x:auto;white-space:nowrap;padding:9px 0}
-.nav button{flex:0 0 auto;text-align:center;background:transparent;color:var(--iris-muted);border-radius:9px;padding:9px 13px;font-weight:600;border-bottom:2px solid transparent;transition:background .2s,color .2s,border-color .2s}
-.nav button.active,.nav button:hover{background:var(--iris-soft);color:#0e7490;border-bottom-color:var(--iris-primary)}
-.main{max-width:1240px;padding:30px 24px 42px}
-.page-title{align-items:center;margin-bottom:24px}
-.page-title h1{font-size:clamp(23px,3vw,30px);font-weight:750;letter-spacing:-.6px;color:var(--iris-text)}
-.page-title h2,.card h2{font-size:18px;font-weight:700}
-.card{background:var(--iris-surface);border:1px solid var(--iris-border);border-radius:16px;padding:22px;margin-bottom:20px;box-shadow:var(--iris-shadow);transition:background .25s,border-color .25s,box-shadow .25s}
-.stat{background:var(--iris-surface);border:1px solid var(--iris-border);border-radius:15px;padding:20px;box-shadow:0 4px 15px rgba(15,23,42,.035);color:var(--iris-muted)}
-.stat strong{color:#0891b2;font-size:clamp(25px,3vw,32px);font-weight:750}
-button{background:var(--iris-primary);border-radius:9px;transition:background .2s,transform .2s}
-button:hover:not(:disabled){background:var(--iris-primary-hover);transform:translateY(-1px)}
-button.secondary{background:#e0f7fa;color:#155e75}
-button.secondary:hover{background:#cffafe;color:#164e63}
-button.danger{background:#ef4444}
-input,select,textarea{border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:var(--iris-text);transition:border-color .2s,box-shadow .2s}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--iris-primary);box-shadow:0 0 0 3px rgba(6,182,212,.14)}
-label{color:#334155}
-th{background:#ecfeff;color:#155e75;font-weight:700}
-th,td{border-bottom:1px solid #e2e8f0}
-table{font-size:13px}
-.badge,.pill{background:#ecfeff;color:#155e75;border:1px solid #cceff4}
-.warning{background:#fffbeb;border-left-color:#f59e0b}
-.notice{background:#fff;color:var(--iris-muted);border:1px solid var(--iris-border)}
-.auth-wrap .card{padding:32px}
-.auth-wrap h1{font-size:26px;letter-spacing:-.5px}
-.features .feature-group{border:1px solid var(--iris-border);border-radius:12px;background:#fff}
-footer{color:var(--iris-muted)}
-body.dark{--iris-bg:#0f172a;--iris-surface:#172334;--iris-text:#e2e8f0;--iris-muted:#a7b5c7;--iris-border:#334155;--iris-soft:#123442;--iris-shadow:0 8px 26px rgba(0,0,0,.22);background:var(--iris-bg);color:var(--iris-text)}
-body.dark header{background:rgba(15,23,42,.97);color:var(--iris-text);border-color:var(--iris-border)}
-body.dark header small{color:var(--iris-muted)}
-body.dark aside{background:rgba(23,35,52,.97);border-color:var(--iris-border)}
-body.dark .nav button{color:var(--iris-muted)}
-body.dark .nav button.active,body.dark .nav button:hover{background:var(--iris-soft);color:#67e8f9;border-bottom-color:#22d3ee}
-body.dark .card,body.dark .stat,body.dark .feature-group{background:var(--iris-surface);border-color:var(--iris-border);color:var(--iris-text)}
-body.dark .page-title h1,body.dark .card h2,body.dark label{color:var(--iris-text)}
-body.dark .stat strong{color:#67e8f9}
-body.dark input,body.dark select,body.dark textarea{background:#0f1b2d;color:var(--iris-text);border-color:#475569}
-body.dark input:focus,body.dark select:focus,body.dark textarea:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.15)}
-body.dark th{background:#123442;color:#cffafe}
-body.dark td,body.dark th{border-color:var(--iris-border)}
-body.dark .muted{color:var(--iris-muted)}
-body.dark .badge,body.dark .pill{background:#123442;color:#cffafe;border-color:#285568}
-body.dark button.secondary{background:#123442;color:#cffafe}
-body.dark button.secondary:hover{background:#164e63}
-body.dark .header-btn{background:#1e293b;color:#e2e8f0;border-color:#475569}
-body.dark .header-btn:hover{background:#334155}
-body.dark .logout-btn{background:#dc2626;color:#fff}
-body.dark .warning{background:#3a301d;color:#fde68a;border-color:#8b6b2e}
-body.dark .notice{background:#1e293b;color:var(--iris-muted);border-color:var(--iris-border)}
-body.dark .features .feature-group{background:var(--iris-surface);border-color:var(--iris-border)}
-@media(max-width:760px){aside{top:0;padding:0 10px}.nav{gap:3px}.nav button{padding:8px 10px;font-size:12px}.main{padding:20px 13px 32px}.card{padding:16px}.page-title{gap:10px}}
-</style>
+<link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 <header><div class="brand"><b>◈ HEALTHCARE · DỰ ÁN 2</b><br><small>Hồ sơ bệnh nhân & phân loại WDBC · Bản học tập</small></div><div class="header-actions"><span id="server-status" class="badge">Đang kết nối…</span><div id="header-user-actions" class="header-user-actions hidden"><button id="theme-toggle" class="header-btn theme-btn" type="button" aria-label="Đổi giao diện">☾ <span>Giao diện tối</span></button><button id="account-profile" class="header-btn account-btn" type="button">♙ <span id="account-badge">Tài khoản</span></button><button id="logout" class="header-btn logout-btn" type="button">Đăng xuất</button></div></div></header>
@@ -118,7 +14,7 @@ body.dark .features .feature-group{background:var(--iris-surface);border-color:v
 <main class="main">
 <section id="page-dashboard"><div class="page-title"><div><h1>Tổng quan</h1><div class="muted">Tình hình hoạt động trong phạm vi tài khoản của bạn.</div></div><span id="role-badge" class="badge"></span></div><div class="warning">Ứng dụng chỉ phục vụ học tập và trình diễn. Kết quả WDBC không phải chẩn đoán y tế, không thay thế bác sĩ hoặc xét nghiệm đã được thẩm định. Chỉ dùng dữ liệu giả lập và dữ liệu mẫu.</div><div class="grid"><div class="stat">Bệnh nhân<strong id="stat-patients">—</strong></div><div class="stat">Nhân viên<strong id="stat-staff">—</strong></div><div class="stat">Lượt dự đoán<strong id="stat-predictions">—</strong></div><div class="stat">Tài khoản<strong id="stat-users">—</strong></div></div><div class="card"><h2>Quy trình hệ thống</h2><p class="muted">Iris Auth Service xác thực tài khoản → Healthcare kiểm tra vai trò và phân công → nhân viên nhập 30 đặc trưng WDBC → mô hình SVM RBF trả kết quả → lịch sử được lưu theo hồ sơ bệnh nhân.</p></div></section>
 <section id="page-patients" class="hidden"><div class="page-title"><div><h1>Hồ sơ bệnh nhân</h1><div class="muted">Danh sách hồ sơ theo quyền truy cập.</div></div><button id="add-patient" class="hidden">+ Thêm bệnh nhân</button></div><div class="card"><div class="inline"><input id="patient-search" placeholder="Tìm theo mã bệnh nhân hoặc họ tên"><button class="secondary" id="reload-patients">Làm mới</button></div><div class="table-wrap"><table><thead><tr><th>Mã bệnh nhân</th><th>Họ tên</th><th>Ngày sinh</th><th>Điện thoại</th><th>Thao tác</th></tr></thead><tbody id="patient-rows"></tbody></table></div><div id="patient-empty" class="empty hidden">Chưa có hồ sơ trong phạm vi tài khoản.</div></div><div id="patient-detail" class="card hidden"><div class="page-title"><div><h2 id="patient-title">Hồ sơ bệnh nhân</h2><span id="patient-code" class="badge"></span></div><button class="secondary" id="close-patient">Đóng</button></div><form id="patient-form"><div class="form-grid"><div><label>Họ và tên</label><input id="p-full-name" maxlength="150" required></div><div><label>Ngày sinh</label><input id="p-birth-date" type="date"></div><div><label>Giới tính</label><select id="p-gender"><option value="">Chưa cung cấp</option><option>Nam</option><option>Nữ</option><option>Khác</option><option>Không muốn cung cấp</option></select></div><div><label>Điện thoại</label><input id="p-phone" maxlength="30"></div><div><label>Email</label><input id="p-email" type="email" maxlength="150"></div><div><label>Địa chỉ</label><input id="p-address" maxlength="500"></div></div><div id="p-notes-wrap"><label>Ghi chú nội bộ</label><textarea id="p-notes" maxlength="2000"></textarea></div><div class="actions"><button id="save-patient">Lưu hồ sơ</button></div></form><div class="actions"><button class="secondary" id="go-predict">Dự đoán cho bệnh nhân này</button><button class="secondary" id="view-patient-history">Xem lịch sử</button></div></div></section>
-<section id="page-predict" class="hidden"><div class="page-title"><div><h1>Dự đoán WDBC</h1><div class="muted">SVM RBF · 30 đặc trưng · StandardScaler + SVC.</div></div><span id="model-version" class="badge"></span></div><div class="warning">Chỉ nhân viên y tế được phân công hoặc Admin mới có thể tạo dự đoán cho hồ sơ. Đây là mô hình học tập, không dùng để đưa ra quyết định chăm sóc hoặc điều trị.</div><div class="card"><label>Chọn hồ sơ bệnh nhân</label><select id="prediction-patient"><option value="">-- Chọn bệnh nhân --</option></select><div class="actions"><button class="secondary" id="fill-sample">Điền mẫu WDBC</button><button class="secondary" id="clear-features">Xóa dữ liệu</button><button class="secondary" id="download-sample">Tải JSON mẫu</button><input type="file" id="import-json" accept=".json,application/json" style="max-width:240px"></div><form id="predict-form"><div id="feature-fields" class="features"></div><div class="actions"><button id="predict-submit">Dự đoán và lưu lịch sử</button></div></form></div><div id="prediction-result" class="card hidden"><h2>Kết quả phân loại</h2><div id="prediction-label" class="result"></div><div id="prob-malignant"></div><div class="bar"><span id="bar-malignant"></span></div><div id="prob-benign"></div><div class="bar"><span id="bar-benign"></span></div><p class="muted" id="prediction-warning"></p><button class="secondary" id="download-current-result">Tải kết quả JSON</button></div></section>
+<section id="page-predict" class="hidden"><div class="page-title"><div><h1>Dự đoán WDBC</h1><div class="muted">4 biến thể SVM · 30 đặc trưng · StandardScaler + SVC.</div></div><span id="model-version" class="badge"></span></div><div class="warning">Chỉ nhân viên y tế được phân công hoặc Admin mới có thể tạo dự đoán cho hồ sơ. Đây là mô hình học tập, không dùng để đưa ra quyết định chăm sóc hoặc điều trị.</div><div class="card"><div class="model-toolbar"><div><label for="prediction-model">Chọn mô hình SVM</label><select id="prediction-model"><option value="SVM_RBF">SVM RBF</option></select></div><div class="muted" id="prediction-model-note">Chọn một trong 4 kernel đã được huấn luyện và đánh giá.</div></div><label>Chọn hồ sơ bệnh nhân</label><select id="prediction-patient"><option value="">-- Chọn bệnh nhân --</option></select><div class="actions"><button class="secondary" id="fill-sample">Điền mẫu WDBC</button><button class="secondary" id="clear-features">Xóa dữ liệu</button><button class="secondary" id="download-sample">Tải JSON mẫu</button><input type="file" id="import-json" accept=".json,application/json" style="max-width:240px"></div><form id="predict-form"><div id="feature-fields" class="features"></div><div class="actions"><button id="predict-submit">Dự đoán và lưu lịch sử</button></div></form></div><div id="prediction-result" class="card hidden"><h2>Kết quả phân loại</h2><div id="prediction-label" class="result"></div><div id="prob-malignant"></div><div class="bar"><span id="bar-malignant"></span></div><div id="prob-benign"></div><div class="bar"><span id="bar-benign"></span></div><p class="muted" id="prediction-warning"></p><button class="secondary" id="download-current-result">Tải kết quả JSON</button></div></section>
 <section id="page-history" class="hidden"><div class="page-title"><div><h1>Lịch sử dự đoán</h1><div class="muted">Lọc, xem chi tiết và xuất dữ liệu trong phạm vi quyền.</div></div><button class="secondary" id="export-filtered">Xuất Excel theo bộ lọc</button></div><div class="card"><div class="form-grid"><div><label>Tìm bệnh nhân</label><input id="history-patient" placeholder="Mã hoặc họ tên"></div><div><label>Kết quả</label><select id="history-label"><option value="">Tất cả</option><option value="malignant">Ác tính</option><option value="benign">Lành tính</option></select></div><div><label>Từ ngày</label><input id="history-start" type="date"></div><div><label>Đến ngày</label><input id="history-end" type="date"></div></div><div class="actions"><button id="apply-history">Áp dụng lọc</button><button class="secondary" id="reload-history">Làm mới</button><button class="danger hidden" id="bulk-delete-history">Xóa mục đã chọn (Admin)</button></div><div class="table-wrap"><table><thead><tr><th id="history-select-head">Chọn</th><th>Thời gian</th><th>Mã bệnh nhân</th><th>Bệnh nhân</th><th>Kết quả</th><th>P(ác tính)</th><th>P(lành tính)</th><th>Chi tiết</th></tr></thead><tbody id="history-rows"></tbody></table></div><div id="history-empty" class="empty hidden">Chưa có lịch sử dự đoán.</div><div class="actions"><button class="secondary" id="history-prev">Trước</button><span id="history-page-info" class="pill">Trang 1</span><button class="secondary" id="history-next">Sau</button></div></div><div id="history-detail" class="card hidden"><h2>Chi tiết dự đoán</h2><pre id="history-detail-json" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div></section>
 <section id="page-staff" class="hidden"><div class="page-title"><div><h1>Nhân viên y tế</h1><div class="muted">Danh sách nhân viên và thông tin phân công.</div></div></div><div class="card"><div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Tài khoản</th><th>Khoa / phòng</th><th>Chức vụ</th><th>Điện thoại</th></tr></thead><tbody id="staff-rows"></tbody></table></div></div></section>
 <section id="page-admin" class="hidden"><div class="page-title"><div><h1>Quản trị Healthcare</h1><div class="muted">Quản lý vai trò, phân công và nhật ký.</div></div></div><div id="bootstrap-box" class="card hidden"><h3>Khởi tạo Admin Healthcare</h3><p class="muted">Tài khoản hiện tại là Admin của IdP. Có thể dùng quyền này để tạo Admin Healthcare đầu tiên.</p><button id="bootstrap-admin">Khởi tạo quyền Admin</button></div><div class="card"><h2>Tài khoản ứng dụng</h2><p class="muted">Người dùng cần đăng nhập Healthcare ít nhất một lần mới xuất hiện ở đây.</p><div class="table-wrap"><table><thead><tr><th>Tài khoản</th><th>Họ tên</th><th>Vai trò</th><th>Trạng thái</th><th>Cập nhật vai trò</th></tr></thead><tbody id="user-rows"></tbody></table></div></div><div class="card"><h2>Phân công nhân viên – bệnh nhân</h2><div class="form-grid"><div><label>Nhân viên</label><select id="assign-staff"></select></div><div><label>Bệnh nhân</label><select id="assign-patient"></select></div><div style="display:flex;align-items:end"><button id="create-assignment">Phân công</button></div></div><div class="table-wrap"><table><thead><tr><th>Nhân viên</th><th>Mã bệnh nhân</th><th>Bệnh nhân</th><th>Trạng thái</th><th></th></tr></thead><tbody id="assignment-rows"></tbody></table></div></div><div class="card"><h2>Nhật ký hoạt động</h2><div class="table-wrap"><table><thead><tr><th>Thời gian</th><th>Người thực hiện</th><th>Hành động</th><th>Loại dữ liệu</th></tr></thead><tbody id="audit-rows"></tbody></table></div></div></section>
@@ -126,6 +22,8 @@ body.dark .features .feature-group{background:var(--iris-surface);border-color:v
 <div class="page-title"><div><h1>Đánh giá mô hình & dữ liệu WDBC</h1><div class="muted">Chỉ số lấy từ metadata của lần huấn luyện hiện tại.</div></div><button class="secondary" id="reload-analytics">Làm mới</button></div>
 <div class="warning">Các chỉ số là kết quả thực nghiệm trên tập kiểm tra của bộ dữ liệu học tập; không phải hiệu năng lâm sàng.</div>
 <div class="grid" id="metric-cards"></div>
+<div class="card"><h2>So sánh 4 mô hình SVM</h2><p class="muted">Cùng tập train/test phân tầng và 5-fold cross-validation trên tập train. Mô hình mặc định để dự đoán là SVM RBF.</p><div id="model-comparison" class="model-comparison"></div></div>
+<div class="card"><h2>Đánh giá chi tiết từng mô hình</h2><div class="model-toolbar"><div><label for="analytics-model">Mô hình cần xem chỉ số</label><select id="analytics-model"><option value="SVM_RBF">SVM RBF</option></select></div></div><div id="model-metrics-caption" class="muted"></div></div>
 <div class="card"><h2>Ma trận nhầm lẫn</h2><div id="confusion-view"></div></div>
 <div class="card"><h2>Thống kê bộ dữ liệu</h2><div id="dataset-summary" class="grid two"></div><div class="table-wrap"><table><thead><tr><th>Đặc trưng</th><th>Trung bình</th><th>Độ lệch chuẩn</th><th>Nhỏ nhất</th><th>Trung vị</th><th>Lớn nhất</th></tr></thead><tbody id="feature-stat-rows"></tbody></table></div></div>
 <div class="card"><h2>Lát cắt biên quyết định SVM</h2><p class="muted">Chọn hai đặc trưng; 28 đặc trưng còn lại được cố định tại trung vị WDBC.</p><div class="form-grid"><div><label>Trục X</label><select id="slice-x"></select></div><div><label>Trục Y</label><select id="slice-y"></select></div><div style="display:flex;align-items:end"><button id="draw-slice">Vẽ biểu đồ</button></div></div><canvas id="decision-canvas" width="900" height="480" style="width:100%;max-height:480px;margin-top:14px"></canvas><p id="slice-warning" class="muted"></p></div>
@@ -139,133 +37,4 @@ body.dark .features .feature-group{background:var(--iris-surface);border-color:v
 </section>
 <section id="page-profile" class="hidden"><div class="page-title"><div><h1>Tài khoản của tôi</h1><div class="muted">Danh tính đăng nhập được quản lý bởi Iris Auth Service.</div></div></div><div class="card"><div class="grid two"><div><label>Tên đăng nhập</label><div id="my-username" class="pill"></div></div><div><label>Vai trò Healthcare</label><div id="my-role" class="pill"></div></div><div><label>Họ tên hiển thị</label><div id="my-name" class="pill"></div></div><div><label>Mã người dùng IdP</label><div id="my-id" class="pill"></div></div></div></div></section>
 </main></div><footer>Trần Duy Phúc – 24CKDL · Dự án 2 · Chỉ phục vụ học tập</footer>
-<script>
-'use strict';
-const $=id=>document.getElementById(id);let csrf='',registerMode=false,currentUser=null,patients=[],selectedPatient=null,metadata=null,sample=null,lastPrediction=null;
-function notify(message){$('notice').textContent=message;$('notice').classList.remove('hidden');setTimeout(()=>$('notice').classList.add('hidden'),5500)}
-function csrfCookie(){const m=document.cookie.match(/(?:^|; )healthcare_csrf=([^;]+)/);return m?decodeURIComponent(m[1]):csrf}
-async function api(url,method='GET',body){const headers={'Content-Type':'application/json'};if(!['GET','HEAD','OPTIONS'].includes(method))headers['X-CSRF-Token']=csrfCookie();const r=await fetch(url,{method,credentials:'same-origin',headers,...(body!==undefined?{body:JSON.stringify(body)}:{})});let data;try{data=await r.json()}catch{throw Error('Máy chủ trả về dữ liệu không hợp lệ.')}if(!r.ok)throw Error(typeof data.detail==='string'?data.detail:JSON.stringify(data.detail||data));return data}
-function showAuth(){currentUser=null;csrf='';$('auth-screen').classList.remove('hidden');$('app-screen').classList.add('hidden');$('header-user-actions').classList.add('hidden')}
-function showApp(user){currentUser=user;$('auth-screen').classList.add('hidden');$('app-screen').classList.remove('hidden');$('header-user-actions').classList.remove('hidden');$('account-badge').textContent=user.username+' · '+user.role;$('role-badge').textContent='Vai trò: '+user.role;$('nav-staff').classList.toggle('hidden',user.role!=='admin');$('nav-batch').classList.toggle('hidden',!['admin','staff'].includes(user.role));$('nav-admin').classList.toggle('hidden',!(user.role==='admin'||user.idp_is_admin));$('add-patient').classList.toggle('hidden',!['admin','staff'].includes(user.role));$('my-username').textContent=user.username;$('my-name').textContent=user.name;$('my-role').textContent=user.role;$('my-id').textContent=user.id;}
-async function loadDashboard(){const d=await api('/api/dashboard/summary');$('stat-patients').textContent=d.patients;$('stat-staff').textContent=d.staff;$('stat-predictions').textContent=d.predictions;$('stat-users').textContent=d.users}
-function navigate(page){document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));['dashboard','patients','predict','history','analytics','batch','staff','admin','profile'].forEach(p=>$('page-'+p).classList.toggle('hidden',p!==page));if(page==='analytics')loadAnalytics().then(drawDecisionSlice).catch(e=>notify(e.message));if(page==='dashboard')loadDashboard().catch(e=>notify(e.message));if(page==='patients')loadPatients().catch(e=>notify(e.message));if(page==='history')loadHistory().catch(e=>notify(e.message));if(page==='staff')loadStaff().catch(e=>notify(e.message));if(page==='admin')loadAdmin().catch(e=>notify(e.message));if(page==='predict')loadPredictionPage().catch(e=>notify(e.message));}
-document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));
-$('auth-toggle').onclick=()=>{registerMode=!registerMode;$('name-field').classList.toggle('hidden',!registerMode);$('display-name').required=registerMode;$('auth-submit').textContent=registerMode?'Tạo tài khoản bệnh nhân':'Đăng nhập';$('auth-toggle').textContent=registerMode?'Quay lại đăng nhập':'Tạo tài khoản bệnh nhân';$('password').autocomplete=registerMode?'new-password':'current-password'};
-$('auth-form').onsubmit=async e=>{e.preventDefault();$('auth-submit').disabled=true;try{const path=registerMode?'/api/register':'/api/login';const body={username:$('username').value.trim(),password:$('password').value};if(registerMode)body.name=$('display-name').value.trim();const d=await api(path,'POST',body);csrf=d.csrf||'';if(d.user){showApp(d.user);navigate('dashboard');notify(registerMode?'Đã tạo tài khoản bệnh nhân.':'Đăng nhập thành công.')}else notify(d.message||'Thành công.');$('password').value=''}catch(err){notify(err.message)}finally{$('auth-submit').disabled=false}};
-$('logout').onclick=async()=>{try{await api('/api/logout','POST')}catch(e){}showAuth();notify('Đã đăng xuất.')};
-async function loadPatients(){const d=await api('/api/patients');patients=d.items||[];renderPatients();const sel=$('prediction-patient');sel.replaceChildren(new Option('-- Chọn bệnh nhân --',''));patients.forEach(p=>sel.add(new Option(p.patient_code+' · '+p.full_name,p.id)));const as=$('assign-patient');if(as){as.replaceChildren();patients.forEach(p=>as.add(new Option(p.patient_code+' · '+p.full_name,p.id)))}}
-function renderPatients(){const body=$('patient-rows');body.replaceChildren();const q=$('patient-search').value.toLowerCase();const rows=patients.filter(p=>(p.full_name+' '+p.patient_code).toLowerCase().includes(q));$('patient-empty').classList.toggle('hidden',rows.length>0);rows.forEach(p=>{const tr=document.createElement('tr');[p.patient_code,p.full_name,p.birth_date||'',p.phone||''].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});const td=document.createElement('td');const b=document.createElement('button');b.className='secondary';b.textContent='Mở hồ sơ';b.onclick=()=>openPatient(p.id);td.append(b);tr.append(td);body.append(tr)})}
-$('patient-search').oninput=renderPatients;$('reload-patients').onclick=()=>loadPatients().catch(e=>notify(e.message));$('add-patient').onclick=()=>{selectedPatient=null;$('patient-detail').classList.remove('hidden');$('patient-title').textContent='Tạo hồ sơ bệnh nhân';$('patient-code').textContent='Mã sẽ được tự tạo';$('patient-form').reset();$('p-notes-wrap').classList.remove('hidden');$('save-patient').textContent='Tạo hồ sơ'};$('close-patient').onclick=()=>$('patient-detail').classList.add('hidden');
-async function openPatient(id){const p=await api('/api/patients/'+id);selectedPatient=p;$('patient-detail').classList.remove('hidden');$('patient-title').textContent=p.full_name;$('patient-code').textContent=p.patient_code;[['p-full-name','full_name'],['p-birth-date','birth_date'],['p-gender','gender'],['p-phone','phone'],['p-email','email'],['p-address','address'],['p-notes','notes']].forEach(([el,key])=>$(el).value=p[key]||'');const isPatient=currentUser.role==='patient';['p-full-name','p-birth-date','p-gender','p-notes'].forEach(id=>$(id).disabled=isPatient);$('p-notes-wrap').classList.toggle('hidden',isPatient);$('save-patient').classList.toggle('hidden',false);$('go-predict').classList.toggle('hidden',isPatient);}
-$('patient-form').onsubmit=async e=>{e.preventDefault();let body={full_name:$('p-full-name').value,birth_date:$('p-birth-date').value||null,gender:$('p-gender').value,phone:$('p-phone').value,email:$('p-email').value,address:$('p-address').value,notes:$('p-notes').value};if(currentUser.role==='patient')body={phone:$('p-phone').value,email:$('p-email').value,address:$('p-address').value};try{if(selectedPatient){await api('/api/patients/'+selectedPatient.id,'PUT',body);notify('Đã cập nhật hồ sơ.')}else{const p=await api('/api/patients','POST',body);selectedPatient=p;notify('Đã tạo hồ sơ '+p.patient_code)}await loadPatients();if(selectedPatient)await openPatient(selectedPatient.id)}catch(err){notify(err.message)}};
-$('go-predict').onclick=()=>{if(selectedPatient){navigate('predict');$('prediction-patient').value=selectedPatient.id}};$('view-patient-history').onclick=()=>navigate('history');
-async function loadPredictionPage(){if(!metadata){metadata=await api('/api/models');sample=await api('/api/sample');$('model-version').textContent='Model '+metadata.model_version;buildFeatureFields()}if(currentUser.role==='patient'){$('predict-form').classList.add('hidden');notify('Tài khoản bệnh nhân chỉ xem hồ sơ và lịch sử.')}else{$('predict-form').classList.remove('hidden');if(!patients.length)await loadPatients()}}
-function buildFeatureFields(){const root=$('feature-fields');root.replaceChildren();const names=metadata.feature_names;[['Mean · Trung bình',0],['Error · Sai số chuẩn',10],['Worst · Giá trị lớn nhất',20]].forEach(([title,start])=>{const box=document.createElement('div');box.className='feature-group';const h=document.createElement('h3');h.textContent=title;box.append(h);names.slice(start,start+10).forEach((name,i)=>{const label=document.createElement('label');label.textContent=name;const input=document.createElement('input');input.type='number';input.min='0';input.step='any';input.required=true;input.dataset.feature=name;box.append(label,input)});root.append(box)})}
-function fillFeatures(obj){document.querySelectorAll('[data-feature]').forEach(input=>{input.value=obj[input.dataset.feature]??''})}
-$('fill-sample').onclick=()=>fillFeatures(sample.features);$('clear-features').onclick=()=>$('predict-form').reset();$('download-sample').onclick=()=>{const blob=new Blob([JSON.stringify(sample,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sample_wdbc.json';a.click();URL.revokeObjectURL(a.href)};
-$('import-json').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());fillFeatures(d.features)}catch(err){notify('File JSON không hợp lệ: '+err.message)}};
-$('predict-form').onsubmit=async e=>{e.preventDefault();const patientId=$('prediction-patient').value;if(!patientId){notify('Hãy chọn hồ sơ bệnh nhân.');return}const features={};document.querySelectorAll('[data-feature]').forEach(i=>features[i.dataset.feature]=Number(i.value));$('predict-submit').disabled=true;try{const d=await api('/api/patients/'+patientId+'/predict','POST',{features});lastPrediction={patient_id:patientId,features,result:d,created_at:new Date().toISOString()};$('prediction-result').classList.remove('hidden');$('prediction-label').textContent=d.predicted_label==='malignant'?'Kết quả: Ác tính (malignant)':'Kết quả: Lành tính (benign)';$('prob-malignant').textContent='Xác suất mô hình – ác tính: '+(d.probability_malignant*100).toFixed(2)+'%';$('prob-benign').textContent='Xác suất mô hình – lành tính: '+(d.probability_benign*100).toFixed(2)+'%';$('bar-malignant').style.width=(d.probability_malignant*100)+'%';$('bar-benign').style.width=(d.probability_benign*100)+'%';$('prediction-warning').textContent=d.warning+' Phiên bản: '+d.model_version;notify('Đã lưu lịch sử dự đoán cho bệnh nhân.')}catch(err){notify(err.message)}finally{$('predict-submit').disabled=false}};
-let historyOffset=0,historyLimit=25,historyTotal=0;
-function historyParams(){const p=new URLSearchParams({limit:String(historyLimit),offset:String(historyOffset),patient:$('history-patient').value.trim(),label:$('history-label').value,start_date:$('history-start').value,end_date:$('history-end').value});return p.toString()}
-async function loadHistory(){
- const d=await api('/api/history?'+historyParams());historyTotal=d.total||0;
- const root=$('history-rows');root.replaceChildren();$('history-empty').classList.toggle('hidden',(d.items||[]).length>0);
- $('bulk-delete-history').classList.toggle('hidden',currentUser.role!=='admin');
- (d.items||[]).forEach(r=>{
-  const tr=document.createElement('tr');
-  const pick=document.createElement('td');const cb=document.createElement('input');cb.type='checkbox';cb.className='history-pick';cb.value=r.id;cb.style.width='auto';pick.append(cb);tr.append(pick);
-  [r.created_at?.replace('T',' ').slice(0,19),r.patient_code,r.patient_name,r.predicted_label,(r.probability_malignant*100).toFixed(2)+'%',(r.probability_benign*100).toFixed(2)+'%'].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.append(td)});
-  const action=document.createElement('td');const b=document.createElement('button');b.className='secondary';b.textContent='Xem';b.onclick=async()=>{try{const detail=await api('/api/history/'+r.id);$('history-detail-json').textContent=JSON.stringify(detail,null,2);$('history-detail').classList.remove('hidden')}catch(e){notify(e.message)}};action.append(b);tr.append(action);root.append(tr)
- });
- $('history-page-info').textContent='Hiển thị '+(historyTotal?historyOffset+1:0)+'–'+Math.min(historyOffset+(d.items||[]).length,historyTotal)+' / '+historyTotal;
- $('history-prev').disabled=historyOffset===0;$('history-next').disabled=historyOffset+historyLimit>=historyTotal;
-}
-$('download-current-result').onclick=()=>{
- if(!lastPrediction){notify('Chưa có kết quả dự đoán để tải.');return}
- const blob=new Blob([JSON.stringify(lastPrediction,null,2)],{type:'application/json'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wdbc_prediction_result.json';a.click();URL.revokeObjectURL(a.href);
-};
-$('reload-history').onclick=()=>loadHistory().catch(e=>notify(e.message));
-$('apply-history').onclick=()=>{historyOffset=0;loadHistory().catch(e=>notify(e.message))};
-$('history-prev').onclick=()=>{historyOffset=Math.max(0,historyOffset-historyLimit);loadHistory().catch(e=>notify(e.message))};
-$('history-next').onclick=()=>{historyOffset+=historyLimit;loadHistory().catch(e=>notify(e.message))};
-$('bulk-delete-history').onclick=async()=>{const ids=[...document.querySelectorAll('.history-pick:checked')].map(x=>x.value);if(!ids.length){notify('Chọn ít nhất một bản ghi.');return}if(!confirm('Xóa '+ids.length+' bản ghi đã chọn?'))return;try{const d=await api('/api/history/bulk-delete','POST',{ids});notify('Đã xóa '+d.deleted+' bản ghi.');loadHistory()}catch(e){notify(e.message)}};
-$('export-filtered').onclick=()=>{const p=new URLSearchParams({patient:$('history-patient').value.trim(),label:$('history-label').value,start_date:$('history-start').value,end_date:$('history-end').value});window.location.href='/api/export?'+p.toString()};
-
-async function loadStaff(){const d=await api('/api/admin/staff');const root=$('staff-rows');root.replaceChildren();(d.items||[]).forEach(s=>{const tr=document.createElement('tr');[s.full_name,s.username,s.department,s.position,s.phone].forEach(v=>{const td=document.createElement('td');td.textContent=v||'';tr.append(td)});root.append(tr)})}
-async function loadAdmin(){if(currentUser.idp_is_admin&&currentUser.role==='patient'){$('bootstrap-box').classList.remove('hidden');return}else $('bootstrap-box').classList.add('hidden');const [u,a,p,s]=await Promise.all([api('/api/admin/users'),api('/api/admin/assignments'),api('/api/patients'),api('/api/admin/staff')]);const users=$('user-rows');users.replaceChildren();(u.items||[]).forEach(x=>{const tr=document.createElement('tr');[x.username,x.display_name,x.role,x.status].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});const td=document.createElement('td');const sel=document.createElement('select');['patient','staff','admin'].forEach(r=>sel.add(new Option(r,r)));sel.value=x.role;const b=document.createElement('button');b.textContent='Lưu';b.className='secondary';b.onclick=async()=>{try{await api('/api/admin/users/'+x.id+'/role','PATCH',{role:sel.value});notify('Đã cập nhật vai trò.');await loadAdmin()}catch(e){notify(e.message)}};td.append(sel,b);tr.append(td);users.append(tr)});const staffSel=$('assign-staff');staffSel.replaceChildren();(s.items||[]).forEach(x=>staffSel.add(new Option(x.full_name+' · '+x.username,x.user_id)));const patSel=$('assign-patient');patSel.replaceChildren();(p.items||[]).forEach(x=>patSel.add(new Option(x.patient_code+' · '+x.full_name,x.id)));const ar=$('assignment-rows');ar.replaceChildren();(a.items||[]).forEach(x=>{const tr=document.createElement('tr');[x.staff_name,x.patient_code,x.patient_name,x.status].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});const td=document.createElement('td');if(x.status==='active'){const b=document.createElement('button');b.className='danger';b.textContent='Ngừng';b.onclick=async()=>{try{await api('/api/admin/assignments/'+x.id,'DELETE');await loadAdmin()}catch(e){notify(e.message)}};td.append(b)}tr.append(td);ar.append(tr)});const logs=await api('/api/admin/audit-logs');const lr=$('audit-rows');lr.replaceChildren();(logs.items||[]).forEach(x=>{const tr=document.createElement('tr');[x.created_at?.replace('T',' ').slice(0,19),x.actor_id,x.action,x.resource_type].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.append(td)});lr.append(tr)})}
-$('create-assignment').onclick=async()=>{try{await api('/api/admin/assignments','POST',{staff_user_id:$('assign-staff').value,patient_id:$('assign-patient').value});notify('Đã phân công.');await loadAdmin()}catch(e){notify(e.message)}};
-$('bootstrap-admin').onclick=async()=>{try{await api('/api/admin/bootstrap','POST',{});notify('Đã khởi tạo Admin Healthcare. Đăng xuất rồi đăng nhập lại.')}catch(e){notify(e.message)}};
-$('bootstrap-admin').disabled=false;
-$('patient-search').value='';
-
-let batchOutput=[];
-function csvCell(v){const s=String(v??'');return /[",\\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
-
-async function drawDecisionSlice(){
- const x=$('slice-x').value,y=$('slice-y').value;if(!x||!y||x===y){notify('Chọn hai đặc trưng khác nhau.');return}
- try{
-  const d=await api('/api/analytics/decision-slice?'+new URLSearchParams({x_feature:x,y_feature:y}));
-  const canvas=$('decision-canvas'),ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height,pad=55;
-  ctx.clearRect(0,0,W,H);const nx=d.x.length,ny=d.y.length;
-  const x0=d.x[0],x1=d.x[nx-1],y0=d.y[0],y1=d.y[ny-1];
-  const px=v=>pad+(v-x0)/(x1-x0)*(W-pad*1.5),py=v=>H-pad-(v-y0)/(y1-y0)*(H-pad*1.5);
-  const cw=(W-pad*1.5)/nx,ch=(H-pad*1.5)/ny;
-  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
-   const z=d.decision[j][i];ctx.fillStyle=z>=0?'rgba(31,142,112,.20)':'rgba(190,75,85,.20)';
-   ctx.fillRect(pad+i*cw,H-pad-(j+1)*ch,cw+1,ch+1);
-  }
-  d.points.forEach(p=>{ctx.beginPath();ctx.arc(px(p.x),py(p.y),3,0,Math.PI*2);ctx.fillStyle=p.label===0?'#b43c4a':'#147f9a';ctx.fill();});
-  ctx.strokeStyle='#789098';ctx.lineWidth=1;ctx.strokeRect(pad,pad,W-pad*1.5,H-pad*1.5);
-  ctx.fillStyle=getComputedStyle(document.body).color;ctx.font='13px sans-serif';ctx.fillText(x,pad,H-12);ctx.save();ctx.translate(15,H/2);ctx.rotate(-Math.PI/2);ctx.fillText(y,0,0);ctx.restore();
-  $('slice-warning').textContent=d.fixed_features+' '+d.warning+' Điểm đỏ: ác tính; điểm xanh: lành tính.';
- }catch(e){notify(e.message)}
-}
-
-async function loadAnalytics(){
- const [ev,ds,mi]=await Promise.all([api('/api/analytics/evaluation'),api('/api/analytics/dataset'),api('/api/models')]);
- const sx=$('slice-x'),sy=$('slice-y');if(!sx.options.length){mi.feature_names.forEach(n=>{sx.add(new Option(n,n));sy.add(new Option(n,n))});sy.selectedIndex=1}
-
- const m=ev.metrics||{}, cards=[['Accuracy',m.accuracy],['Sensitivity ác tính',m.sensitivity_malignant],['Specificity lành tính',m.specificity_benign],['ROC-AUC',m.roc_auc_malignant],['Precision ác tính',m.precision_malignant],['F1 ác tính',m.f1_malignant]];
- $('metric-cards').replaceChildren();
- cards.forEach(([name,val])=>{const box=document.createElement('div');box.className='stat';const n=document.createElement('div');n.textContent=name;const v=document.createElement('strong');v.textContent=Number.isFinite(Number(val))?(Number(val)*100).toFixed(2)+'%':'—';box.append(n,v);$('metric-cards').append(box)});
- const cm=ev.confusion_matrix||[];const labels=['Ác tính','Lành tính'];let html='<table><thead><tr><th>Thực tế / Dự đoán</th><th>Ác tính</th><th>Lành tính</th></tr></thead><tbody>';
- cm.forEach((row,i)=>{html+='<tr><th>'+labels[i]+'</th><td>'+row[0]+'</td><td>'+row[1]+'</td></tr>'});$('confusion-view').innerHTML=html+'</tbody></table>';
- $('dataset-summary').innerHTML='<div class="stat">Số mẫu<strong>'+ds.samples+'</strong></div><div class="stat">Số đặc trưng<strong>'+ds.features+'</strong></div><div class="stat">Mẫu ác tính<strong>'+ds.class_counts.malignant+'</strong></div><div class="stat">Mẫu lành tính<strong>'+ds.class_counts.benign+'</strong></div>';
- const body=$('feature-stat-rows');body.replaceChildren();
- (ds.statistics||[]).forEach(r=>{const tr=document.createElement('tr');[r.feature,r.mean,r.std,r.min,r['50%'],r.max].forEach(v=>{const td=document.createElement('td');td.textContent=typeof v==='number'?v.toFixed(4):v;tr.append(td)});body.append(tr)});
- $('model-info').textContent=mi.model_name+' · Phiên bản '+mi.model_version+' · '+mi.dataset+' · '+mi.feature_count+' đặc trưng. '+mi.warning;
-}
-$('reload-analytics').onclick=()=>loadAnalytics().catch(e=>notify(e.message));
-$('draw-slice').onclick=drawDecisionSlice;
-$('run-batch').onclick=async()=>{
- const file=$('batch-file').files[0];if(!file){notify('Hãy chọn tệp CSV.');return}
- if(file.size>2*1024*1024){notify('Tệp vượt quá 2 MB.');return}
- $('run-batch').disabled=true;
- try{
-  const csv=await file.text();const data=await api('/api/predict/batch-csv','POST',{csv});batchOutput=data.items||[];
-  const root=$('batch-results');root.replaceChildren();
-  batchOutput.forEach(r=>{const tr=document.createElement('tr');[r.row,r.predicted_label||'—',r.probability_malignant==null?'—':(r.probability_malignant*100).toFixed(2)+'%',r.probability_benign==null?'—':(r.probability_benign*100).toFixed(2)+'%',r.error||'Thành công'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});root.append(tr)});
-  $('batch-status').textContent='Đã xử lý '+data.count+' dòng. '+data.warning;
-  $('download-batch').disabled=!batchOutput.length;
- }catch(e){notify(e.message)}finally{$('run-batch').disabled=false}
-};
-$('download-batch').onclick=()=>{
- const header=['row','predicted_label','probability_malignant','probability_benign','error'];
- const lines=[header.join(',')].concat(batchOutput.map(r=>header.map(k=>csvCell(r[k])).join(',')));
- const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wdbc_batch_predictions.csv';a.click();URL.revokeObjectURL(a.href);
-};
-function applyTheme(dark){
- document.body.classList.toggle('dark',dark);
- document.documentElement.style.colorScheme=dark?'dark':'light';
- $('theme-toggle').innerHTML=dark?'☀ <span>Giao diện sáng</span>':'☾ <span>Giao diện tối</span>';
- try{localStorage.setItem('healthcare-theme',dark?'dark':'light')}catch(e){}
-}
-$('theme-toggle').onclick=()=>applyTheme(!document.body.classList.contains('dark'));
-$('account-profile').onclick=()=>navigate('profile');
-try{applyTheme(localStorage.getItem('healthcare-theme')==='dark')}catch(e){applyTheme(false)}
-
-async function init(){try{const h=await fetch('/health');const hd=await h.json();$('server-status').textContent=hd.status==='ok'?'● API & mô hình sẵn sàng':'API chưa sẵn sàng';const m=await api('/api/me');csrf=m.csrf;showApp(m.user);navigate('dashboard')}catch(e){showAuth();$('server-status').textContent='● API trực tuyến · Chưa đăng nhập'}}
-init();
-</script></body></html>
+<script src="/static/js/app.js" defer></script></body></html>
