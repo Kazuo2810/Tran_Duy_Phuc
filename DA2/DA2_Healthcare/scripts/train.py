@@ -42,13 +42,18 @@ def main():
     for key, cfg in MODEL_CONFIGS.items():
         pipe = Pipeline([
             ("scaler", StandardScaler()),
-            ("svc", SVC(kernel=cfg["kernel"], probability=True,
+            ("svc", SVC(kernel=cfg["kernel"], probability=False,
                         class_weight="balanced", random_state=42))
         ])
         search = GridSearchCV(pipe, cfg["grid"], scoring="recall_macro",
-            cv=cv, n_jobs=2, refit=True, return_train_score=True)
+            cv=cv, n_jobs=1, refit=True, return_train_score=True)
         search.fit(X_train, y_train)
-        evaluation_model = search.best_estimator_
+        best_params = {k.replace("svc__", ""): v for k, v in search.best_params_.items()}
+        evaluation_model = Pipeline([
+            ("scaler", StandardScaler()),
+            ("svc", SVC(kernel=cfg["kernel"], probability=True,
+                        class_weight="balanced", random_state=42, **best_params))
+        ]).fit(X_train, y_train)
         pred = evaluation_model.predict(X_test)
         malignant_idx = list(evaluation_model.classes_).index(0)
         prob = evaluation_model.predict_proba(X_test)[:, malignant_idx]
@@ -77,9 +82,7 @@ def main():
         deployment_model = Pipeline([
             ("scaler", StandardScaler()),
             ("svc", SVC(kernel=cfg["kernel"], probability=True,
-                        class_weight="balanced", random_state=42, **{
-                            k.replace("svc__", ""): v for k, v in search.best_params_.items()
-                        }))
+                        class_weight="balanced", random_state=42, **best_params)
         ]).fit(X, y)
         joblib.dump(deployment_model, deployment_path)
         report = {
