@@ -66,9 +66,9 @@ class MovieRecommender:
             liked = rated_items[rated_values >= 4.0]
             if len(liked) == 0:
                 liked = rated_items[np.argsort(rated_values)[-min(3, len(rated_values)):]]
+            liked_profile = csr_matrix(self.content_features[liked].mean(axis=0))
             content_scores = np.asarray(
-                self.content_features[liked].mean(axis=0)
-                @ self.content_features.T
+                (liked_profile @ self.content_features.T).toarray()
             ).ravel()
         else:
             content_scores = np.zeros(len(self.movies), dtype=float)
