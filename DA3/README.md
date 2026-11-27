@@ -8,7 +8,8 @@ Dự báo PM2.5 sau 1 giờ cho 12 trạm Beijing Multi-Site bằng Random Fores
 3. Cài gói: `pip install -r requirements.txt`
 4. Tải dữ liệu: `python training/download_dataset.py`
 5. Tạo feature: `python training/prepare_training_data.py`
-6. Train và đánh giá: `python training/train_models.py`
+6. Train và đánh giá: `python training/train_models.py
+python training/evaluate.py`
 
 ## Chạy
 `uvicorn app.main:app --reload --port 8100`
