@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 ROOT=Path(__file__).resolve().parents[1]
+load_dotenv(ROOT / ".env")
 def path_env(key,default):
  p=Path(os.getenv(key,default)); return p if p.is_absolute() else ROOT/p
 OBSERVATION_HTTP_URL=os.getenv("OBSERVATION_HTTP_URL","https://beijing-observation-simulator.onrender.com").rstrip("/")
