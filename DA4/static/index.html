@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DA4 · Movie Recommender</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#131b2e;--line:#27334d;--text:#edf2ff;--muted:#9eabc4;--accent:#8b9cff;--accent2:#54d6bd}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#202b50 0,transparent 34%),var(--bg);color:var(--text);font:15px/1.5 Inter,Segoe UI,Arial,sans-serif}
+header{padding:32px max(22px,calc((100% - 1180px)/2));border-bottom:1px solid var(--line)}.eyebrow{color:var(--accent2);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+h1{font-size:clamp(28px,5vw,44px);margin:8px 0}.sub{color:var(--muted);max-width:760px}
+main{max-width:1180px;margin:26px auto;padding:0 20px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat,.panel{background:linear-gradient(145deg,#18223a,#11192a);border:1px solid var(--line);border-radius:16px;padding:18px}.stat b{font-size:26px;display:block}.stat span,.muted{color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.panel h2{margin:0 0 8px;font-size:19px}.controls{display:flex;gap:8px;margin-top:14px}input{min-width:0;flex:1;background:#0b1324;color:var(--text);border:1px solid var(--line);padding:12px;border-radius:10px}button{background:var(--accent);border:0;color:#10162a;padding:11px 15px;border-radius:10px;font-weight:700;cursor:pointer}button.secondary{background:#263550;color:var(--text)}
+.results{margin-top:18px}.results-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.movie{border:1px solid var(--line);background:#111a2c;border-radius:13px;padding:14px;min-height:130px}.movie h3{font-size:15px;margin:0 0 9px}.tag{display:inline-block;color:#b9c5ff;background:#273255;border-radius:20px;padding:3px 8px;font-size:11px;margin:2px 4px 2px 0}.rating{color:#f6cf75;font-size:13px;margin-top:8px}.empty{color:var(--muted);padding:20px;border:1px dashed var(--line);border-radius:12px}
+footer{max-width:1180px;margin:32px auto;padding:0 20px 28px;color:var(--muted);font-size:12px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:430px){.cards{grid-template-columns:1fr}.controls{flex-direction:column}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">Data Science Project · DA4</div><h1>Movie Recommendation System</h1><div class="sub">Khám phá phim phù hợp bằng cách kết hợp Collaborative Filtering và Content-Based Filtering trên bộ dữ liệu MovieLens.</div></header>
+<main>
+<section class="stats" id="stats">
+<div class="stat"><b>—</b><span>Phim</span></div><div class="stat"><b>—</b><span>Người dùng</span></div><div class="stat"><b>—</b><span>Lượt đánh giá</span></div><div class="stat"><b>—</b><span>Điểm trung bình</span></div>
+</section>
+<section class="grid">
+<div class="panel"><h2>Gợi ý theo người dùng</h2><p class="muted">Nhập userId có trong MovieLens (1–610).</p><div class="controls"><input id="userId" type="number" min="1" max="610" value="1" placeholder="Ví dụ: 1"><button onclick="recommendUser()">Gợi ý phim</button></div></div>
+<div class="panel"><h2>Tìm phim tương tự</h2><p class="muted">Nhập tên phim để tìm và chọn phim muốn khám phá.</p><div class="controls"><input id="query" placeholder="Tên phim, ví dụ Toy Story"><button onclick="searchMovies()">Tìm phim</button></div><div id="searchResults"></div></div>
+</section>
+<section class="results"><div class="results-head"><h2 id="resultTitle">Phim phổ biến</h2><button class="secondary" onclick="loadPopular()">Xem phim phổ biến</button></div><div class="cards" id="results"><div class="empty">Đang tải dữ liệu...</div></div></section>
+</main>
+<footer>MovieLens latest-small · GroupLens Research, University of Minnesota · Kết quả gợi ý mang tính tham khảo.</footer>
+<script>
+const $=id=>document.getElementById(id);
+async function api(path){const r=await fetch(path);const d=await r.json();if(!r.ok)throw new Error(d.detail||"Không thể tải dữ liệu");return d}
+function render(items,target="results"){const el=$(target);if(!items.length){el.innerHTML='<div class="empty">Không tìm thấy kết quả phù hợp.</div>';return}
+el.innerHTML=items.map(m=>'<article class="movie"><h3>'+escapeHtml(m.title)+'</h3><div>'+String(m.genres||"").split("|").slice(0,4).map(g=>'<span class="tag">'+escapeHtml(g)+'</span>').join("")+'</div><div class="rating">★ '+Number(m.average_rating||0).toFixed(2)+' · '+Number(m.rating_count||0)+' lượt đánh giá</div><button class="secondary" style="margin-top:10px;padding:7px 10px" onclick="recommendMovie('+m.movieId+',\''+escapeJs(m.title)+'\')">Phim tương tự</button></article>').join("")}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeJs(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'")}
+async function loadStats(){const s=await api("/api/stats");$("stats").innerHTML=[["movies","Phim"],["users","Người dùng"],["ratings","Lượt đánh giá"],["mean_rating","Điểm trung bình"]].map(([k,l])=>'<div class="stat"><b>'+Number(s[k]).toLocaleString("vi-VN")+'</b><span>'+l+'</span></div>').join("")}
+async function loadPopular(){ $("resultTitle").textContent="Phim phổ biến";render((await api("/api/popular")).items)}
+async function recommendUser(){try{$("resultTitle").textContent="Gợi ý cho người dùng "+$("userId").value;render((await api("/api/recommend/user/"+encodeURIComponent($("userId").value))).items)}catch(e){$("results").innerHTML='<div class="empty">'+escapeHtml(e.message)+'</div>'}}
+async function searchMovies(){try{const data=await api("/api/search?q="+encodeURIComponent($("query").value));render(data.items,"searchResults")}catch(e){$("searchResults").textContent=e.message}}
+async function recommendMovie(id,title){try{$("resultTitle").textContent='Phim tương tự: '+title;render((await api("/api/recommend/movie/"+id)).items)}catch(e){$("results").textContent=e.message}}
+$("query").addEventListener("keydown",e=>{if(e.key==="Enter")searchMovies()});
+Promise.all([loadStats(),loadPopular()]).catch(e=>{$("results").innerHTML='<div class="empty">'+escapeHtml(e.message)+'</div>'});
+</script>
+</body></html>
