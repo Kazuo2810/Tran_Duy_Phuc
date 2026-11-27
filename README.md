@@ -295,3 +295,17 @@ Các kết quả trên là kiểm tra trong môi trường hiện tại, **khôn
 - Giữ phiên bản thư viện tương thích với các model đã lưu trong `requirements.txt`.
 - Bảng `logs_svm` cũ tiếp tục được dùng cho SVM Linear theo tài liệu cập nhật database; các bảng log RF, KNN, DT, LR cũ không bị xóa nhưng không còn xuất hiện trong giao diện/API mới.
 - Không xóa database cũ nếu chưa sao lưu và chưa xác định dữ liệu cần giữ.
+
+---
+
+## DA4 – Movie Recommendation System
+
+DA4 nằm trong thư mục [DA4/](DA4/) và sử dụng bộ dữ liệu MovieLens latest-small từ GroupLens Research.
+
+- Dataset: [MovieLens latest-small](https://grouplens.org/datasets/movielens/latest/)
+- Tải dữ liệu: [ml-latest-small.zip](https://files.grouplens.org/datasets/movielens/ml-latest-small.zip)
+- Phương pháp: Item-based Collaborative Filtering, TF-IDF Content-Based Filtering và Hybrid Recommendation.
+- Dashboard/API: FastAPI; hướng dẫn cài đặt, huấn luyện và triển khai nằm trong [DA4/README.md](DA4/README.md).
+- Render Root Directory: `DA4`.
+
+DA4 có dữ liệu và mô hình riêng; không thay đổi các file, mô hình hoặc cấu hình hiện có của DA1.
