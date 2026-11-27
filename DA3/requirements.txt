@@ -1,0 +1,10 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30
+pandas>=2.2
+numpy>=1.26
+pyarrow>=17
+scikit-learn>=1.5
+joblib>=1.4
+httpx>=0.27
+websockets>=13
+jinja2>=3.1
